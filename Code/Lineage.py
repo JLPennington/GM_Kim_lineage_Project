@@ -125,22 +125,49 @@ def parse_raw_data(raw_data_dir, lineage):
             log_message(f"Error processing file {file_path}: {e}")
 
 
-def generate_latex(lineage, bios, tex_file, output_dir):
+def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
     """
-    Generates a LaTeX document for single-sided printing with proper page numbering.
+    Generates a LaTeX document with a title page, introduction, numbered chapters,
+    a table of contents, and enhanced table formatting for student data.
     """
     try:
         with open(tex_file, "w") as file:
-            # LaTeX document preamble for single-sided printing
+            # LaTeX document preamble
             file.write("\\documentclass[oneside]{book}\n")
             file.write("\\usepackage[utf8]{inputenc}\n")
             file.write("\\usepackage{longtable}\n")
             file.write("\\usepackage{titlesec}\n")
             file.write("\\titleformat{\\chapter}[display]{\\bfseries\\Huge}{}{0pt}{}[\\vspace{1em}]\n")
-            file.write("\\pagestyle{plain}\n")
             file.write("\\begin{document}\n")
+            
+            # Title Page (No page numbers)
+            file.write("\\begin{titlepage}\n")
+            file.write("\\pagestyle{empty}\n")  # Suppress page numbers
+            file.write("\\centering\n")
+            file.write("{\\Huge Lineage of Grand Master Chong Woong Kim}\\par\n")
+            file.write("\\vspace{2cm}\n")
+            file.write("{\\Large Documented and Compiled}\\par\n")
+            file.write("\\vfill\n")
+            file.write("{\\large \\today}\\par\n")
+            file.write("\\end{titlepage}\n")
+            
+            # Introduction Section (No page numbers)
+            intro_file = os.path.join(intro_dir, "intro.txt")
+            if os.path.exists(intro_file):
+                with open(intro_file, "r") as intro:
+                    intro_content = intro.read()
+                file.write("\\chapter*{Introduction}\n")
+                file.write("\\pagestyle{empty}\n")  # Suppress page numbers
+                file.write(intro_content + "\n\n")
+            else:
+                log_message(f"Warning: Introduction file not found at {intro_file}.")
+
+            # Table of Contents (Start page numbering here)
+            file.write("\\clearpage\n")
+            file.write("\\pagestyle{plain}\n")  # Enable page numbers for TOC
             file.write("\\tableofcontents\n")
             file.write("\\clearpage\n")
+            file.write("\\pagenumbering{arabic}\n")  # Reset page numbers
 
             # Generate a chapter for each teacher
             for chapter_num, (teacher, locations) in enumerate(lineage.items(), start=1):
@@ -209,6 +236,7 @@ if __name__ == "__main__":
     current_dir = os.getcwd()
     raw_data_dir = os.path.join(current_dir, "RAW Data")
     bio_dir = os.path.join(current_dir, "Bios")
+    intro_dir = os.path.join(current_dir, "Introduction")
     output_dir = os.path.dirname(current_dir)
     tex_file = os.path.join(output_dir, "lineage_document.tex")
     log_file = os.path.join(output_dir, "error_log.txt")
@@ -221,7 +249,7 @@ if __name__ == "__main__":
     parse_raw_data(raw_data_dir, lineage)
 
     print("Generating LaTeX document...")
-    generate_latex(lineage, bios, tex_file, output_dir)
+    generate_latex(lineage, bios, tex_file, output_dir, intro_dir)
 
     print("Compiling LaTeX document to PDF...")
     generate_pdf(tex_file, output_dir)
