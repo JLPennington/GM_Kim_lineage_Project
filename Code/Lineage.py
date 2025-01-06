@@ -227,23 +227,7 @@ def log_message(message, log_file="error_log.txt"):
     with open(log_file, "a") as log:
         log.write(f"{message}\n")
 
-def summarize_errors(log_file="error_log.txt"):
-    """
-    Summarizes warnings and errors from the log file.
-    """
-    if not os.path.exists(log_file):
-        print("No warnings or errors logged.")
-        return
 
-    with open(log_file, "r") as log:
-        lines = log.readlines()
-        warnings = [line for line in lines if "Warning:" in line]
-        errors = [line for line in lines if "Error:" in line]
-
-    print("\nSummary of Issues:")
-    print(f"Warnings: {len(warnings)}")
-    print(f"Errors: {len(errors)}")
-    print(f"Detailed log available at: {log_file}")
 
 
 if __name__ == "__main__":
@@ -252,6 +236,11 @@ if __name__ == "__main__":
     bio_dir = os.path.join(current_dir, "Bios")
     output_dir = os.path.dirname(current_dir)
     tex_file = os.path.join(output_dir, "lineage_document.tex")
+    log_file = os.path.join(output_dir, "error_log.txt")
+
+    # Clear previous log file
+    if os.path.exists(log_file):
+        os.remove(log_file)
 
     print(f"RAW Data Directory: {raw_data_dir}")
     print(f"Bios Directory: {bio_dir}")
@@ -261,3 +250,9 @@ if __name__ == "__main__":
     bios = load_bios(bio_dir)
     parse_raw_data(raw_data_dir, lineage)
     generate_latex(lineage, bios, tex_file, output_dir)
+
+    # Add error summary to LaTeX
+    add_error_summary_to_latex(tex_file, log_file)
+
+    # Print summary of issues
+    summarize_errors(log_file)
