@@ -212,20 +212,21 @@ def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
 
 def generate_pdf(tex_file, output_dir):
     """
-    Compiles the LaTeX file into a PDF using pdflatex.
+    Compiles the LaTeX file into a PDF using pdflatex. Runs multiple times to ensure TOC is generated.
     """
     try:
         print(f"Compiling {tex_file} into a PDF...")
-        result = subprocess.run(
-            ["pdflatex", "-output-directory", output_dir, tex_file],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        if result.returncode == 0:
-            print(f"PDF successfully generated at {os.path.join(output_dir, 'lineage_document.pdf')}")
-        else:
-            print(f"PDF generation failed:\n{result.stdout}\n{result.stderr}")
+        for i in range(2):  # Run pdflatex twice to resolve TOC references
+            result = subprocess.run(
+                ["pdflatex", "-output-directory", output_dir, tex_file],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            if result.returncode != 0:
+                print(f"PDF generation failed on iteration {i + 1}:\n{result.stdout}\n{result.stderr}")
+                return
+        print(f"PDF successfully generated at {os.path.join(output_dir, 'lineage_document.pdf')}")
     except FileNotFoundError:
         print("Error: 'pdflatex' is not installed or not found in the PATH.")
     except Exception as e:
