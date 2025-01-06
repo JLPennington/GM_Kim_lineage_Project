@@ -1,7 +1,25 @@
 import os
 import subprocess
 from collections import defaultdict
+from datetime import datetime
 
+def parse_date(date_str):
+    """
+    Parses a date string and returns it in YYYY-MM-DD format.
+    Supports multiple input formats.
+    """
+    if not date_str:
+        return "No Date Provided"
+
+    # List of date formats to try
+    formats = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%d/%m/%Y"]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    print(f"Warning: Invalid date format '{date_str}'. Using placeholder.")
+    return "Invalid Date"
 
 def reformat_name(name):
     """
