@@ -209,13 +209,21 @@ def generate_latex(lineage, bios, tex_file, output_dir):
 
     except Exception as e:
         print(f"Error writing LaTeX file: {e}")
-        
+
 
 def log_warning(message, log_file="error_log.txt"):
     """
     Logs a warning message to the console and an optional log file.
     """
     print(f"Warning: {message}")
+    with open(log_file, "a") as log:
+        log.write(f"{message}\n")
+
+def log_message(message, log_file="error_log.txt"):
+    """
+    Logs a message to the console and an optional log file.
+    """
+    print(message)
     with open(log_file, "a") as log:
         log.write(f"{message}\n")
 
