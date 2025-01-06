@@ -5,12 +5,14 @@ def reformat_name(name):
     """
     Reformats a name to: Title Last Name, First Name Middle Name.
     Supports titles like Grand Master, Master, Mr., Ms., Mrs.
+    Removes trailing commas or extra spaces.
     """
+    name = name.strip().rstrip(",")  # Remove trailing commas and spaces
     name_parts = name.split()
     valid_titles = {"Grand Master", "Master", "Mr.", "Ms.", "Mrs."}
 
     if len(name_parts) < 2:
-        return name.strip()  # Return as-is for single-word names
+        return name  # Return as-is for single-word names
 
     # Check if the name starts with a valid title
     if " ".join(name_parts[:2]) in valid_titles:  # Handle "Grand Master"
@@ -43,6 +45,7 @@ def load_bios(bio_dir):
         print(f"Bios directory not found: {bio_dir}")
         return bios
 
+    print(f"Processing bios from directory: {bio_dir}")
     for filename in os.listdir(bio_dir):
         if filename.endswith(".txt"):
             teacher_name = os.path.splitext(filename)[0]
@@ -58,9 +61,49 @@ def load_bios(bio_dir):
                         elif line.startswith("Nationality:"):
                             bio_data["nationality"] = line.replace("Nationality:", "").strip()
                     bios[teacher_name] = bio_data
+                    print(f"Loaded bio for teacher: {teacher_name}")
             except Exception as e:
                 print(f"Error reading bio file {bio_path}: {e}")
     return bios
+
+def validate_line(parts, line_number, file_path, issues):
+    """
+    Validates a single line of input data.
+    Logs warnings or errors for missing fields.
+    """
+    warnings = []
+    errors = []
+
+    # Teacher name validation
+    teacher = parts[0].strip().rstrip(",") if len(parts) > 0 else ""
+    if not teacher:
+        errors.append("Missing teacher name.")
+
+    # Student name validation
+    student = parts[2].strip() if len(parts) > 2 else ""
+    if not student:
+        errors.append("Missing student name.")
+
+    # Ranking validation
+    ranking = parts[4].strip() if len(parts) > 4 else ""
+    if not ranking:
+        errors.append("Missing student ranking.")
+
+    # Date validation
+    date = parts[3].strip() if len(parts) > 3 else ""
+    if not date:
+        warnings.append("Missing date.")
+
+    # Number validation
+    number = parts[5].strip() if len(parts) > 5 else ""
+    if not number:
+        warnings.append("Missing student number.")
+
+    # Record the issues
+    if warnings or errors:
+        issues[file_path]["lines"].append((line_number, parts, warnings, errors))
+        issues[file_path]["warnings"] += len(warnings)
+        issues[file_path]["errors"] += len(errors)
 
 def parse_teacher_student_file(file_path, lineage, issues):
     """
@@ -72,6 +115,7 @@ def parse_teacher_student_file(file_path, lineage, issues):
                 line = line.strip()
                 if line:
                     parts = [x.strip() for x in line.split(",")]
+                    validate_line(parts, line_number, file_path, issues)
                     teacher = reformat_name(parts[0])  # Reformat teacher name
                     address = parts[1] if len(parts) > 1 else ""  # Optional address
                     student = parts[2]
@@ -103,70 +147,67 @@ def generate_latex(lineage, bios, output_path):
 
             # Generate a chapter for each teacher
             for teacher, locations in lineage.items():
-                # Teacher chapter heading
-                file.write(f"\\chapter*{{{teacher}}}\n")
+                teacher_clean = teacher.strip().rstrip(",")  # Clean up teacher name
+                file.write(f"\\chapter*{{{teacher_clean}}}\n")
 
-                # Generate the paragraph based on bio data
-                if teacher in bios:
-                    bio_data = bios[teacher]
+                if teacher_clean in bios:
+                    bio_data = bios[teacher_clean]
                     hometown = bio_data.get("hometown", "Unknown hometown")
                     student_of = bio_data.get("student_of", "Unknown teacher")
                     nationality = bio_data.get("nationality", "Unknown nationality")
-                    file.write(f"\\paragraph*{{}} {teacher}, a {nationality} martial artist, is from {hometown} and was trained under {student_of}. \n")
+                    file.write(f"\\paragraph*{{}} {teacher_clean}, a {nationality} martial artist, is from {hometown} and was trained under {student_of}. \n")
                 else:
-                    print(f"Warning: Missing bio for teacher '{teacher}'.")
-                    file.write(f"\\paragraph*{{}} A biography for {teacher} is currently unavailable.\n")
+                    print(f"Warning: Missing bio for teacher '{teacher_clean}'.")
+                    file.write(f"\\paragraph*{{}} A biography for {teacher_clean} is currently unavailable.\n")
 
-                # Add sections for each physical address
                 for address, students in locations.items():
-                    # Section for the physical address
                     if address:
                         file.write(f"\\section*{{{address}}}\n")
                     else:
                         file.write("\\section*{Unknown Address}\n")
 
-                    # Table of students
                     file.write("\\begin{tabularx}{\\textwidth}{|c|X|X|X|X|}\n")
                     file.write("\\hline\n")
                     file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\n")
                     file.write("\\hline\n")
 
-                    # Add each student as a row with numbering
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\\n")
                         file.write("\\hline\n")
 
                     file.write("\\end{tabularx}\n")
 
-            # LaTeX document footer
             file.write("\\end{document}\n")
         print(f"LaTeX document generated at: {output_path}")
     except Exception as e:
         print(f"Error writing LaTeX file: {e}")
 
 if __name__ == "__main__":
-    # Define directories and output file
     raw_data_dir = os.path.join(os.getcwd(), "RAW Data")
     bio_dir = os.path.join(os.getcwd(), "Bios")
     output_file = os.path.join(os.path.dirname(os.getcwd()), "lineage_document.tex")
 
-    # Load teacher bios
     bios = load_bios(bio_dir)
-
-    # Track issues
+    issues = defaultdict(lambda: {"warnings": 0, "errors": 0, "lines": []})
     lineage = defaultdict(dict)
 
-    # Process all files in the RAW Data directory
     if not os.path.exists(raw_data_dir):
         print(f"RAW Data directory not found: {raw_data_dir}")
     else:
         for filename in os.listdir(raw_data_dir):
-            if filename.startswith("."):  # Ignore hidden files
+            if filename.startswith("."):
                 continue
             file_path = os.path.join(raw_data_dir, filename)
-            if os.path.isfile(file_path):  # Ensure it's a file
-                parse_teacher_student_file(file_path, lineage, {})
+            if os.path.isfile(file_path):
+                parse_teacher_student_file(file_path, lineage, issues)
 
-        # Generate LaTeX document
+        if issues:
+            print("\nSummary of Issues:")
+            for file_path, file_issues in issues.items():
+                print(f"File: {file_path}")
+                print(f"  Warnings: {file_issues['warnings']}")
+                print(f"  Errors: {file_issues['errors']}")
+            print("\nReview detailed logs for line-specific issues.")
+
         generate_latex(lineage, bios, output_file)
         print("\nOutput file generated.")

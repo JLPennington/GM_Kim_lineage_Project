@@ -1,5 +1,0 @@
-Master Davis Anthony, 123 Training Rd, Student 5, 2025-01-05, Fighter, 33456
-Master Lee James, , Student 6, 2025-01-06, Fighter
-, 456 Combat St, Student 7, 2025-01-07, Martial Artist
-Mr. Baker Chris, 987 Technique Ln, , 2025-01-09, Instructor, 55678
-Ms. Smith Jane, 444 Precision Ave, Student 8, 2025-11-30, Master
