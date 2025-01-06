@@ -125,10 +125,10 @@ def parse_raw_data(raw_data_dir, lineage):
             log_message(f"Error processing file {file_path}: {e}")
 
 
-def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
+def generate_latex(lineage, bios, tex_file, output_dir, intro_dir, license_file):
     """
-    Generates a LaTeX document with a title page, introduction, numbered chapters,
-    a table of contents, and enhanced table formatting for student data.
+    Generates a LaTeX document with a title page, dynamic license page, introduction,
+    numbered chapters, a table of contents, and enhanced table formatting for student data.
     """
     try:
         with open(tex_file, "w") as file:
@@ -140,7 +140,7 @@ def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
             file.write("\\titleformat{\\chapter}[display]{\\bfseries\\Huge}{}{0pt}{}[\\vspace{1em}]\n")
             file.write("\\begin{document}\n")
             
-            # Title Page (No page numbers)
+            # Title Page
             file.write("\\begin{titlepage}\n")
             file.write("\\pagestyle{empty}\n")  # Suppress page numbers
             file.write("\\centering\n")
@@ -151,18 +151,31 @@ def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
             file.write("{\\large \\today}\\par\n")
             file.write("\\end{titlepage}\n")
             
-            # Introduction Section (No page numbers)
+            # License Page
+            file.write("\\clearpage\n")
+            file.write("\\pagestyle{empty}\n")  # Suppress page numbers
+            file.write("\\chapter*{Copyright and License}\n")
+            if os.path.exists(license_file):
+                with open(license_file, "r") as license_f:
+                    license_text = license_f.read()
+                file.write(license_text.replace("\n", "\\newline\n") + "\n")
+            else:
+                log_message(f"Warning: License file not found at {license_file}.")
+                file.write("License information is currently unavailable.\n")
+
+            # Introduction Section
             intro_file = os.path.join(intro_dir, "intro.txt")
             if os.path.exists(intro_file):
                 with open(intro_file, "r") as intro:
                     intro_content = intro.read()
+                file.write("\\clearpage\n")
                 file.write("\\chapter*{Introduction}\n")
                 file.write("\\pagestyle{empty}\n")  # Suppress page numbers
                 file.write(intro_content + "\n\n")
             else:
                 log_message(f"Warning: Introduction file not found at {intro_file}.")
 
-            # Table of Contents (Start page numbering here)
+            # Table of Contents
             file.write("\\clearpage\n")
             file.write("\\pagestyle{plain}\n")  # Enable page numbers for TOC
             file.write("\\tableofcontents\n")
@@ -208,7 +221,6 @@ def generate_latex(lineage, bios, tex_file, output_dir, intro_dir):
         print(f"LaTeX document generated at: {tex_file}")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}")
-
 
 def generate_pdf(tex_file, output_dir):
     """
