@@ -1,148 +1,131 @@
 
-# **Lineage Processing Script**
+# Lineage Documentation Tool
 
-This project is designed to document the lineage of martial artists trained under **Grand Master Kim**. It organizes and validates teacher-student data, ensuring a professional and systematic representation of the lineage in a structured LaTeX document.
+## Purpose
+This project aims to document the lineage of Grand Master Kim and other instructors, their locations, and their students over time. The resulting document is a well-structured LaTeX file that includes information about instructors, their bios, addresses, and detailed student lists.
 
-By leveraging this script, martial artists' heritage and training records can be preserved with clarity and accuracy. This project supports the vision of maintaining the legacy of Grand Master Kim and the students he has trained.
+## Features
+- Parses raw data files containing information about instructors, students, and addresses.
+- Generates a LaTeX document organized by instructor, with:
+  - Chapters for each instructor.
+  - Sections for each physical address.
+  - Student lists displayed in well-formatted tables.
+- Includes instructor bios with data points such as:
+  - Hometown
+  - Teacher under whom they trained
+  - Nationality
+- Handles missing or malformed data with detailed error reporting:
+  - Logs missing or malformed instructor bios.
+  - Logs missing student data fields like names, dates, rankings, or numbers.
 
----
+## Requirements
+1. **Python 3.x**:
+   - Ensure Python 3 is installed on your system.
+   - Required libraries: None (uses built-in Python libraries).
+2. **LaTeX**:
+   - A LaTeX distribution such as TeX Live or MikTeX is needed to compile the `.tex` file.
+3. **Directory Structure**:
+   - `RAW Data/`: Contains the raw input files for parsing.
+   - `Bios/`: Contains bios for instructors as `.txt` files.
+   - Output LaTeX file will be saved in the parent directory.
 
-## **Features**
-- Validates input data for missing critical fields.
-- Supports teacher titles: **Grand Master**, **Master**, **Mr.**, **Ms.**, **Mrs.**.
-- Generates a LaTeX file that organizes data by teacher chapters.
-- Automatically balances tables for a professional document layout.
-- Provides clear summary and detailed logs for warnings and errors in input data.
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repository-name.git
+   cd your-repository-name
+   ```
 
----
+2. Place your raw data files in the `RAW Data/` directory.
+3. Place your instructor bios in the `Bios/` directory, formatted as `.txt` files.
 
-## **Requirements**
-
-### **Software**
-1. **Python 3.8 or higher**
-   - Install Python from [python.org](https://www.python.org/downloads/).
-
-2. **LaTeX Distribution**
-   - A LaTeX compiler is required to process the `.tex` file into a PDF. Examples include:
-     - **TeX Live** (Linux, macOS, Windows)
-     - **MikTeX** (Windows)
-     - **MacTeX** (macOS)
-   - Install from [TeX Live](https://www.tug.org/texlive/) or [MikTeX](https://miktex.org/).
-
-### **Python Libraries**
-No additional Python libraries are required. The script uses Python's standard library.
-
----
-
-## **Setup**
-
-### **1. Directory Structure**
-Ensure the following directory structure:
+## Input File Formats
+### Raw Data Files
+Each line in a raw data file should contain:
 ```
-project_root/
-│
-├── Code/
-│   ├── Lineage.py        # The main script
-│   └── RAW Data/         # Directory for input text files
-│       ├── file1.txt     # Example input file
-│       ├── file2.txt
-│       └── file3.txt
-└── lineage_document.tex  # Output file (generated in the top-level directory)
+Instructor Name, Address, Student Name, Date, Ranking, Number
 ```
-
-- Place the `Lineage.py` script inside the `Code/` directory.
-- Place all input text files in the `RAW Data/` subdirectory.
-
-### **2. Input File Format**
-Each input file should have one entry per line with the following fields, separated by commas:
+Example:
 ```
-<teacher name>, <teacher address>, <student name>, <date>, <ranking>, <student number>
+Grand Master Kim, 123 Martial Way, Student A, 2025-01-01, Black Belt, 12345
+Master Lee, 456 Combat St, Student B, 2025-02-15, Brown Belt
 ```
 
-#### **Mandatory Fields**:
-- `<teacher name>`: Must include a title (e.g., "Grand Master Kim").
-- `<student name>`: Student's full name.
-- `<ranking>`: Student's rank.
-
-#### **Optional Fields**:
-- `<teacher address>`: Teacher's physical address.
-- `<date>`: Date of Rank (format: `YYYY-MM-DD`).
-- `<student number>`: Dan number
-
-#### **Example Input**:
-```plaintext
-Grand Master Kim, 123 Training Blvd, Student A, 2025-01-01, Black Belt, 12345
-Master Lee, 456 Martial Rd, Student B, 2025-02-01, Brown Belt
-Mr. Smith, 789 Combat Ave, Student C, , Instructor, 67890
-
+### Instructor Bios
+Each bio file in the `Bios/` directory should be named after the instructor (e.g., `Grand Master Kim.txt`) and contain:
+```
+Hometown: Seoul, South Korea
+Student of: Master Lee
+Nationality: Korean
 ```
 
----
+## Usage
+1. Run the main script:
+   ```bash
+   python3 Lineage.py
+   ```
 
-## **Usage**
+2. The script will:
+   - Parse all files in the `RAW Data/` directory.
+   - Check for missing or malformed data.
+   - Generate a LaTeX file (`lineage_document.tex`) in the parent directory.
 
-### **1. Run the Script**
-Navigate to the `Code/` directory and run the script:
-```bash
-python3 Lineage.py
-```
-
-### **2. Script Output**
-- **Validation Summary**: The script will display a summary of warnings and errors in the input data.
-- **Detailed Logs**: If requested, the script provides a detailed breakdown of issues by file and line number.
-- **LaTeX File**: The script generates a `lineage_document.tex` file in the top-level directory.
-
-### **3. Process the LaTeX File**
-To generate a PDF document from the `.tex` file:
-1. Open a terminal or command prompt.
-2. Navigate to the directory containing `lineage_document.tex`.
-3. Run the following command:
+3. To compile the `.tex` file into a PDF:
    ```bash
    pdflatex lineage_document.tex
    ```
-4. The PDF will be generated in the same directory.
 
----
+## Error Handling
+The script identifies and logs the following issues:
+- **Instructor Bios**:
+  - Missing bio files for instructors.
+  - Malformed or incomplete bio data.
+- **Student Data**:
+  - Missing or malformed fields, such as:
+    - Instructor name
+    - Student name
+    - Ranking (mandatory)
+    - Date or number (optional)
 
-## **Error Handling**
-### **Critical Errors**
-The script will exclude rows with the following issues:
-1. Missing **teacher name (with title)**.
-2. Missing **student name**.
-3. Missing **ranking**.
+### Example Error Summary
+After processing, the script provides a summary of issues:
+```
+Summary of Issues:
+File: RAW Data/file1.txt
+  Warnings: 2
+  Errors: 1
+File: RAW Data/file2.txt
+  Warnings: 3
+  Errors: 0
+```
 
-### **Warnings**
-The script logs warnings for missing optional fields such as:
-- Teacher address
-- Date
-- Student number
+Run the script again for detailed information on each issue.
 
-Warnings do not prevent the generation of the output file.
+## Output Example
+The generated LaTeX document includes:
+1. **Chapters for Instructors**:
+   - Bio paragraph (if available).
+2. **Sections for Addresses**:
+   - Tables listing students associated with each address.
 
----
+### Example Chapter
+```
+\chapter*{Grand Master Kim}
 
-## **Contributing**
-1. Fork the repository and create your branch:
-   ```bash
-   git checkout -b feature/YourFeature
-   ```
-2. Commit your changes:
-   ```bash
-   git commit -m "Add YourFeature"
-   ```
-3. Push to the branch:
-   ```bash
-   git push
-   ```
-4. Open a pull request.
+\paragraph*{} Grand Master Kim, a Korean martial artist, is from Seoul, South Korea and was trained under Master Lee.
 
----
+\section*{123 Martial Way, Seoul, South Korea}
+egin{tabularx}{	extwidth}{|c|X|X|X|X|}
+\hline
+	extbf{No.} & 	extbf{Student Name} & 	extbf{Date} & 	extbf{Ranking} & 	extbf{Number} \
+\hline
+1 & Student A & 2025-01-01 & Black Belt & 12345 \
+\hline
+\end{tabularx}
+```
 
-## **License**
-This project is licensed under the MIT License. See `LICENSE` for more details.
+## Contributing
+Contributions are welcome! If you have suggestions for improvements or encounter issues, feel free to open an issue or submit a pull request.
 
----
-
-## **Contact**
-For questions or support, please reach out to **[Your Contact Info]**.
-
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
