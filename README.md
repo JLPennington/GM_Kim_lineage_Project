@@ -62,18 +62,19 @@ Each input file should have one entry per line with the following fields, separa
 #### **Mandatory Fields**:
 - `<teacher name>`: Must include a title (e.g., "Grand Master Kim").
 - `<student name>`: Student's full name.
-- `<ranking>`: Student's rank or role.
+- `<ranking>`: Student's rank.
 
 #### **Optional Fields**:
 - `<teacher address>`: Teacher's physical address.
-- `<date>`: Date of lineage (format: `YYYY-MM-DD`).
-- `<student number>`: A unique identifier for the student.
+- `<date>`: Date of Rank (format: `YYYY-MM-DD`).
+- `<student number>`: Dan number
 
 #### **Example Input**:
 ```plaintext
 Grand Master Kim, 123 Training Blvd, Student A, 2025-01-01, Black Belt, 12345
 Master Lee, 456 Martial Rd, Student B, 2025-02-01, Brown Belt
 Mr. Smith, 789 Combat Ave, Student C, , Instructor, 67890
+
 ```
 
 ---
