@@ -105,16 +105,28 @@ def parse_raw_data(raw_data_dir, lineage):
             with open(file_path, "r") as file:
                 for line in file:
                     parts = [x.strip() for x in line.split(",")]
+                    
+                    # Validate the number of fields
                     if len(parts) < 5:
                         print(f"Skipping malformed line in {filename}: {line.strip()}")
                         continue
-                    teacher = reformat_name(parts[0])
-                    address = parts[1]
-                    student = parts[2]
-                    date = parts[3]
-                    ranking = parts[4]
-                    number = parts[5] if len(parts) > 5 else ""
 
+                    teacher = reformat_name(parts[0]) or "Unknown Teacher"
+                    address = parts[1] or "Unknown Address"
+                    student = parts[2] or "Unknown Student"
+                    date = parse_date(parts[3])
+                    ranking = parts[4] or "Unknown Ranking"
+                    number = parts[5] if len(parts) > 5 else "N/A"
+
+                    # Log missing critical fields
+                    if teacher == "Unknown Teacher":
+                        print(f"Warning: Missing teacher name in {filename}: {line.strip()}")
+                    if student == "Unknown Student":
+                        print(f"Warning: Missing student name in {filename}: {line.strip()}")
+                    if ranking == "Unknown Ranking":
+                        print(f"Warning: Missing ranking in {filename}: {line.strip()}")
+
+                    # Populate lineage data
                     if teacher not in lineage:
                         lineage[teacher] = {}
                     if address not in lineage[teacher]:
