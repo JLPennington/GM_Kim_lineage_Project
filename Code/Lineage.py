@@ -7,31 +7,27 @@ from datetime import datetime
 def reformat_name(name):
     """
     Reformats a name to: Title Last Name, First Name Middle Name.
-    Supports titles like Grand Master, Master, Mr., Ms., Mrs.
-    Removes trailing commas or extra spaces.
     """
-    name = name.strip().rstrip(",")  # Remove trailing commas and spaces
+    name = name.strip().rstrip(",")
     name_parts = name.split()
     valid_titles = {"Grand Master", "Master", "Mr.", "Ms.", "Mrs."}
 
     if len(name_parts) < 2:
-        return name  # Return as-is for single-word names
+        return name  # Single-word names
 
-    # Check if the name starts with a valid title
-    if " ".join(name_parts[:2]) in valid_titles:  # Handle "Grand Master"
+    if " ".join(name_parts[:2]) in valid_titles:
         title = " ".join(name_parts[:2])
         rest = name_parts[2:]
-    elif name_parts[0] in valid_titles:  # Handle single-word titles
+    elif name_parts[0] in valid_titles:
         title = name_parts[0]
         rest = name_parts[1:]
     else:
         title = ""
         rest = name_parts
 
-    # Format the name
-    if rest and "," in rest[0]:  # Name is already in "Last, First" format
+    if rest and "," in rest[0]:
         return f"{title} {' '.join(rest)}".strip()
-    elif rest:  # Reformat to "Title Last Name, First Middle"
+    elif rest:
         last_name = rest[-1]
         first_middle = " ".join(rest[:-1])
         return f"{title} {last_name}, {first_middle}".strip()
@@ -42,7 +38,6 @@ def reformat_name(name):
 def parse_date(date_str):
     """
     Parses a date string and returns it in YYYY-MM-DD format.
-    Supports multiple input formats.
     """
     if not date_str:
         return "No Date Provided"
@@ -58,7 +53,7 @@ def parse_date(date_str):
 
 def log_message(message, log_file="error_log.txt"):
     """
-    Logs a message to the console and an optional log file.
+    Logs a message to the console and a log file.
     """
     print(message)
     with open(log_file, "a") as log:
@@ -137,7 +132,6 @@ def generate_latex(lineage, bios, tex_file, output_dir):
     """
     try:
         with open(tex_file, "w") as file:
-            # LaTeX document header
             file.write("\\documentclass{book}\n")
             file.write("\\usepackage[utf8]{inputenc}\n")
             file.write("\\usepackage{longtable}\n")
@@ -145,7 +139,6 @@ def generate_latex(lineage, bios, tex_file, output_dir):
             file.write("\\tableofcontents\n")
             file.write("\\clearpage\n")
 
-            # Generate a chapter for each teacher
             for chapter_num, (teacher, locations) in enumerate(lineage.items(), start=1):
                 teacher_clean = teacher.strip().rstrip(",")
                 file.write(f"\\chapter{{{teacher_clean}}}\n")
@@ -160,7 +153,6 @@ def generate_latex(lineage, bios, tex_file, output_dir):
                     log_message(f"Warning: Missing bio for teacher '{teacher_clean}'.")
                     file.write(f"A biography for {teacher_clean} is currently unavailable.\n")
 
-                # Generate sections for each address
                 for address, students in locations.items():
                     file.write(f"\\section{{{address}}}\n")
                     file.write("\\begin{longtable}{|c|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}\n")
@@ -169,7 +161,6 @@ def generate_latex(lineage, bios, tex_file, output_dir):
                     file.write("\\hline\n")
                     file.write("\\endhead\n")
 
-                    # Add student rows
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\\n")
                         file.write("\\hline\n")
@@ -180,51 +171,28 @@ def generate_latex(lineage, bios, tex_file, output_dir):
         print(f"LaTeX document generated at: {tex_file}")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}")
- 
 
 
-def add_error_summary_to_latex(tex_file, log_file="error_log.txt"):
+def generate_pdf(tex_file, output_dir):
     """
-    Adds a summary of errors and warnings to the LaTeX document.
+    Compiles the LaTeX file into a PDF using pdflatex.
     """
-    if not os.path.exists(log_file):
-        return
-
-    with open(log_file, "r") as log:
-        lines = log.readlines()
-        warnings = [line for line in lines if "Warning:" in line]
-        errors = [line for line in lines if "Error:" in line]
-
-    if warnings or errors:
-        with open(tex_file, "a") as file:
-            file.write("\\chapter*{Error Summary}\n")
-            if warnings:
-                file.write("\\section*{Warnings}\n")
-                for warning in warnings:
-                    file.write(f"{warning.strip()}\\\\\n")
-            if errors:
-                file.write("\\section*{Errors}\n")
-                for error in errors:
-                    file.write(f"{error.strip()}\\\\\n")
-
-
-def summarize_errors(log_file="error_log.txt"):
-    """
-    Summarizes warnings and errors from the log file.
-    """
-    if not os.path.exists(log_file):
-        print("No warnings or errors logged.")
-        return
-
-    with open(log_file, "r") as log:
-        lines = log.readlines()
-        warnings = [line for line in lines if "Warning:" in line]
-        errors = [line for line in lines if "Error:" in line]
-
-    print("\nSummary of Issues:")
-    print(f"Warnings: {len(warnings)}")
-    print(f"Errors: {len(errors)}")
-    print(f"Detailed log available at: {log_file}")
+    try:
+        print(f"Compiling {tex_file} into a PDF...")
+        result = subprocess.run(
+            ["pdflatex", "-output-directory", output_dir, tex_file],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if result.returncode == 0:
+            print(f"PDF successfully generated at {os.path.join(output_dir, 'lineage_document.pdf')}")
+        else:
+            print(f"PDF generation failed:\n{result.stdout}\n{result.stderr}")
+    except FileNotFoundError:
+        print("Error: 'pdflatex' is not installed or not found in the PATH.")
+    except Exception as e:
+        print(f"An error occurred during PDF generation: {e}")
 
 
 if __name__ == "__main__":
@@ -242,6 +210,8 @@ if __name__ == "__main__":
     bios = load_bios(bio_dir)
     parse_raw_data(raw_data_dir, lineage)
 
+    print("Generating LaTeX document...")
     generate_latex(lineage, bios, tex_file, output_dir)
-    add_error_summary_to_latex(tex_file, log_file)
-    summarize_errors(log_file)
+
+    print("Compiling LaTeX document to PDF...")
+    generate_pdf(tex_file, output_dir)
