@@ -38,30 +38,94 @@ def reformat_name(name):
         return title.strip()
 
 
+def load_bios(bio_dir):
+    """
+    Loads bios for teachers from the Bios subdirectory.
+    """
+    bios = {}
+    if not os.path.exists(bio_dir):
+        print(f"Error: Bios directory not found at {bio_dir}.")
+        return bios
+
+    print(f"Loading bios from directory: {bio_dir}")
+    for filename in os.listdir(bio_dir):
+        if filename.endswith(".txt"):
+            teacher_name = os.path.splitext(filename)[0]
+            bio_path = os.path.join(bio_dir, filename)
+            try:
+                with open(bio_path, "r") as bio_file:
+                    bio_data = {}
+                    for line in bio_file:
+                        if line.startswith("Hometown:"):
+                            bio_data["hometown"] = line.replace("Hometown:", "").strip()
+                        elif line.startswith("Student of:"):
+                            bio_data["student_of"] = line.replace("Student of:", "").strip()
+                        elif line.startswith("Nationality:"):
+                            bio_data["nationality"] = line.replace("Nationality:", "").strip()
+                    bios[teacher_name] = bio_data
+                    print(f"Loaded bio for: {teacher_name}")
+            except Exception as e:
+                print(f"Error reading bio file {bio_path}: {e}")
+    return bios
+
+
+def parse_raw_data(raw_data_dir, lineage):
+    """
+    Parses files in the RAW Data directory and populates the lineage dictionary.
+    """
+    if not os.path.exists(raw_data_dir):
+        print(f"Error: RAW Data directory not found at {raw_data_dir}.")
+        return
+
+    print(f"Processing RAW Data files from: {raw_data_dir}")
+    for filename in os.listdir(raw_data_dir):
+        file_path = os.path.join(raw_data_dir, filename)
+        if not filename.endswith(".txt"):
+            continue
+        try:
+            print(f"Processing file: {file_path}")
+            with open(file_path, "r") as file:
+                for line in file:
+                    parts = [x.strip() for x in line.split(",")]
+                    if len(parts) < 5:
+                        print(f"Skipping malformed line in {filename}: {line.strip()}")
+                        continue
+                    teacher = reformat_name(parts[0])
+                    address = parts[1]
+                    student = parts[2]
+                    date = parts[3]
+                    ranking = parts[4]
+                    number = parts[5] if len(parts) > 5 else ""
+
+                    if teacher not in lineage:
+                        lineage[teacher] = {}
+                    if address not in lineage[teacher]:
+                        lineage[teacher][address] = []
+                    lineage[teacher][address].append((student, date, ranking, number))
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+
+
 def generate_pdf(tex_file, output_dir):
     """
     Compiles the LaTeX file into a PDF using pdflatex.
-    Returns a success flag and an error message if any.
     """
     try:
         print(f"Compiling {tex_file} into a PDF...")
-        # Run pdflatex command
         result = subprocess.run(
             ["pdflatex", "-output-directory", output_dir, tex_file],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
-        # Check for errors during compilation
         if result.returncode == 0:
             print(f"PDF successfully generated at {os.path.join(output_dir, 'lineage_document.pdf')}")
-            return True, None
         else:
-            return False, result.stderr
+            print(f"PDF generation failed:\n{result.stderr}")
     except FileNotFoundError:
-        return False, "'pdflatex' is not installed or not found in the PATH."
+        print("Error: 'pdflatex' is not installed or not found in the PATH.")
     except Exception as e:
-        return False, str(e)
+        print(f"An error occurred during PDF generation: {e}")
 
 
 def generate_latex(lineage, bios, tex_file, output_dir):
@@ -69,6 +133,10 @@ def generate_latex(lineage, bios, tex_file, output_dir):
     Generates a LaTeX document with chapters for each teacher
     and sections for each physical address listing their students.
     """
+    if not lineage:
+        print("Error: No lineage data found. The LaTeX document will not be meaningful.")
+        return
+
     try:
         with open(tex_file, "w") as file:
             # LaTeX document header
@@ -79,7 +147,7 @@ def generate_latex(lineage, bios, tex_file, output_dir):
 
             # Generate a chapter for each teacher
             for teacher, locations in lineage.items():
-                teacher_clean = teacher.strip().rstrip(",")  # Clean up teacher name
+                teacher_clean = teacher.strip().rstrip(",")
                 file.write(f"\\chapter*{{{teacher_clean}}}\n")
 
                 if teacher_clean in bios:
@@ -93,11 +161,7 @@ def generate_latex(lineage, bios, tex_file, output_dir):
                     file.write(f"\\paragraph*{{}} A biography for {teacher_clean} is currently unavailable.\n")
 
                 for address, students in locations.items():
-                    if address:
-                        file.write(f"\\section*{{{address}}}\n")
-                    else:
-                        file.write("\\section*{Unknown Address}\n")
-
+                    file.write(f"\\section*{{{address}}}\n")
                     file.write("\\begin{tabularx}{\\textwidth}{|c|X|X|X|X|}\n")
                     file.write("\\hline\n")
                     file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\n")
@@ -111,26 +175,24 @@ def generate_latex(lineage, bios, tex_file, output_dir):
 
             file.write("\\end{document}\n")
         print(f"LaTeX document generated at: {tex_file}")
-
-        # Compile LaTeX to PDF
-        pdf_success, pdf_error = generate_pdf(tex_file, output_dir)
-        if not pdf_success:
-            print(f"PDF generation failed: {pdf_error}")
-            print("The LaTeX file was successfully generated and can be compiled manually.")
+        generate_pdf(tex_file, output_dir)
 
     except Exception as e:
         print(f"Error writing LaTeX file: {e}")
 
 
 if __name__ == "__main__":
-    raw_data_dir = os.path.join(os.getcwd(), "RAW Data")
-    bio_dir = os.path.join(os.getcwd(), "Bios")
-    output_dir = os.path.dirname(os.getcwd())
+    current_dir = os.getcwd()
+    raw_data_dir = os.path.join(current_dir, "RAW Data")
+    bio_dir = os.path.join(current_dir, "Bios")
+    output_dir = os.path.dirname(current_dir)
     tex_file = os.path.join(output_dir, "lineage_document.tex")
 
-    # Sample lineage and bios for testing
-    lineage = defaultdict(dict)  # Populate as needed
-    bios = {}  # Populate as needed
+    print(f"RAW Data Directory: {raw_data_dir}")
+    print(f"Bios Directory: {bio_dir}")
+    print(f"Output Directory: {output_dir}")
 
-    # Generate LaTeX and PDF
+    lineage = defaultdict(dict)
+    bios = load_bios(bio_dir)
+    parse_raw_data(raw_data_dir, lineage)
     generate_latex(lineage, bios, tex_file, output_dir)
