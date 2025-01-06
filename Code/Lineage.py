@@ -227,6 +227,24 @@ def log_message(message, log_file="error_log.txt"):
     with open(log_file, "a") as log:
         log.write(f"{message}\n")
 
+def summarize_errors(log_file="error_log.txt"):
+    """
+    Summarizes warnings and errors from the log file.
+    """
+    if not os.path.exists(log_file):
+        print("No warnings or errors logged.")
+        return
+
+    with open(log_file, "r") as log:
+        lines = log.readlines()
+        warnings = [line for line in lines if "Warning:" in line]
+        errors = [line for line in lines if "Error:" in line]
+
+    print("\nSummary of Issues:")
+    print(f"Warnings: {len(warnings)}")
+    print(f"Errors: {len(errors)}")
+    print(f"Detailed log available at: {log_file}")
+
 
 if __name__ == "__main__":
     current_dir = os.getcwd()
