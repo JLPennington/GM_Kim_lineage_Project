@@ -127,45 +127,55 @@ def parse_raw_data(raw_data_dir, lineage):
 
 def generate_latex(lineage, bios, tex_file, output_dir):
     """
-    Generates a LaTeX document with chapters for each teacher
-    and sections for each physical address listing their students.
+    Generates a LaTeX document for single-sided printing with proper page numbering.
     """
     try:
         with open(tex_file, "w") as file:
-            file.write("\\documentclass{book}\n")
+            # LaTeX document preamble for single-sided printing
+            file.write("\\documentclass[oneside]{book}\n")
             file.write("\\usepackage[utf8]{inputenc}\n")
             file.write("\\usepackage{longtable}\n")
+            file.write("\\usepackage{titlesec}\n")
+            file.write("\\titleformat{\\chapter}[display]{\\bfseries\\Huge}{}{0pt}{}[\\vspace{1em}]\n")
+            file.write("\\pagestyle{plain}\n")
             file.write("\\begin{document}\n")
             file.write("\\tableofcontents\n")
             file.write("\\clearpage\n")
 
+            # Generate a chapter for each teacher
             for chapter_num, (teacher, locations) in enumerate(lineage.items(), start=1):
                 teacher_clean = teacher.strip().rstrip(",")
                 file.write(f"\\chapter{{{teacher_clean}}}\n")
 
+                # Add teacher bio if available
                 if teacher_clean in bios:
                     bio_data = bios[teacher_clean]
                     hometown = bio_data.get("hometown", "Unknown hometown")
                     student_of = bio_data.get("student_of", "Unknown teacher")
                     nationality = bio_data.get("nationality", "Unknown nationality")
-                    file.write(f"{teacher_clean}, a {nationality} martial artist, is from {hometown} and was trained under {student_of}. \n")
+                    file.write(
+                        f"{teacher_clean}, a {nationality} martial artist, is from {hometown} and was trained under {student_of}. \n\n"
+                    )
                 else:
                     log_message(f"Warning: Missing bio for teacher '{teacher_clean}'.")
-                    file.write(f"A biography for {teacher_clean} is currently unavailable.\n")
+                    file.write(f"A biography for {teacher_clean} is currently unavailable.\n\n")
 
+                # Generate sections for each address
                 for address, students in locations.items():
-                    file.write(f"\\section{{{address}}}\n")
-                    file.write("\\begin{longtable}{|c|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}\n")
+                    file.write(f"\\section*{{{address}}}\n")
+                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
                     file.write("\\hline\n")
                     file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\n")
                     file.write("\\hline\n")
                     file.write("\\endhead\n")
 
+                    # Add rows of student data
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\\n")
                         file.write("\\hline\n")
 
                     file.write("\\end{longtable}\n")
+                    file.write("\\vspace{1em}\n")  # Add spacing after each table
 
             file.write("\\end{document}\n")
         print(f"LaTeX document generated at: {tex_file}")
