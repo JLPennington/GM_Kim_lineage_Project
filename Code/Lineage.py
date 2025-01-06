@@ -253,6 +253,8 @@ if __name__ == "__main__":
     output_dir = os.path.dirname(current_dir)
     tex_file = os.path.join(output_dir, "lineage_document.tex")
     log_file = os.path.join(output_dir, "error_log.txt")
+    license_file = os.path.join(current_dir, "LICENSE")
+    
 
     if os.path.exists(log_file):
         os.remove(log_file)
@@ -262,7 +264,7 @@ if __name__ == "__main__":
     parse_raw_data(raw_data_dir, lineage)
 
     print("Generating LaTeX document...")
-    generate_latex(lineage, bios, tex_file, output_dir, intro_dir)
+    generate_latex(lineage, bios, tex_file, output_dir, intro_dir, license_file)
 
     print("Compiling LaTeX document to PDF...")
     generate_pdf(tex_file, output_dir)
