@@ -137,14 +137,18 @@ def generate_latex(lineage, bios, tex_file, output_dir):
     """
     try:
         with open(tex_file, "w") as file:
+            # LaTeX document header
             file.write("\\documentclass{book}\n")
             file.write("\\usepackage[utf8]{inputenc}\n")
-            file.write("\\usepackage{tabularx}\n")
+            file.write("\\usepackage{longtable}\n")
             file.write("\\begin{document}\n")
+            file.write("\\tableofcontents\n")
+            file.write("\\clearpage\n")
 
-            for teacher, locations in lineage.items():
+            # Generate a chapter for each teacher
+            for chapter_num, (teacher, locations) in enumerate(lineage.items(), start=1):
                 teacher_clean = teacher.strip().rstrip(",")
-                file.write(f"\\chapter*{{{teacher_clean}}}\n")
+                file.write(f"\\chapter{{{teacher_clean}}}\n")
 
                 if teacher_clean in bios:
                     bio_data = bios[teacher_clean]
@@ -156,23 +160,27 @@ def generate_latex(lineage, bios, tex_file, output_dir):
                     log_message(f"Warning: Missing bio for teacher '{teacher_clean}'.")
                     file.write(f"A biography for {teacher_clean} is currently unavailable.\n")
 
+                # Generate sections for each address
                 for address, students in locations.items():
-                    file.write(f"\\section*{{{address}}}\n")
-                    file.write("\\begin{tabularx}{\\textwidth}{|c|X|X|X|X|}\n")
+                    file.write(f"\\section{{{address}}}\n")
+                    file.write("\\begin{longtable}{|c|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}\n")
                     file.write("\\hline\n")
                     file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\n")
                     file.write("\\hline\n")
+                    file.write("\\endhead\n")
 
+                    # Add student rows
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\\n")
                         file.write("\\hline\n")
 
-                    file.write("\\end{tabularx}\n")
+                    file.write("\\end{longtable}\n")
 
             file.write("\\end{document}\n")
         print(f"LaTeX document generated at: {tex_file}")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}")
+ 
 
 
 def add_error_summary_to_latex(tex_file, log_file="error_log.txt"):
