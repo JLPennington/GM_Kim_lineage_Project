@@ -43,6 +43,60 @@ def reformat_name(name: str) -> str:
     else:
         return title.strip()
 
+def format_student_name(name: str, format_type: str = "last_first") -> str:
+    """
+    Formats a student's name into the desired format.
+
+    Args:
+        name (str): The student's name.
+        format_type (str): Either "last_first" or "first_last".
+
+    Returns:
+        str: Formatted student name.
+    """
+    name = name.strip().rstrip(",")
+    if "," in name:
+        last, first_middle = [part.strip() for part in name.split(",", 1)]
+        if format_type == "last_first":
+            return f"{last}, {first_middle}"
+        else:
+            return f"{first_middle} {last}"
+    else:
+        parts = name.split()
+        if format_type == "last_first":
+            return f"{parts[-1]}, {' '.join(parts[:-1])}"
+        else:
+            return f"{' '.join(parts[:-1])} {parts[-1]}"
+
+def format_teacher_name(name: str, format_type: str = "title_first_last") -> str:
+    """
+    Formats a teacher's name with title into the desired format.
+
+    Args:
+        name (str): The teacher's name.
+        format_type (str): Either "last_first", "first_last", or "title_first_last".
+
+    Returns:
+        str: Formatted teacher name with title.
+    """
+    name = name.strip().rstrip(",")
+    titles = {"Grand Master", "Master", "Mr.", "Ms.", "Mrs."}
+    parts = name.split()
+
+    if len(parts) > 1 and parts[0] in titles:
+        title = parts[0]
+        rest = " ".join(parts[1:])
+        if format_type == "title_first_last":
+            return f"{title} {rest}"
+        elif format_type == "last_first":
+            formatted_name = format_student_name(rest, "last_first")
+            return f"{title} {formatted_name}"
+        else:
+            formatted_name = format_student_name(rest, "first_last")
+            return f"{title} {formatted_name}"
+    else:
+        return format_student_name(name, format_type)
+
 def parse_date(date_str: str) -> str:
     """
     Parses a date string into a standard format (YYYY-MM-DD).
@@ -240,7 +294,8 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
 
             # Main Content
             for teacher, locations in lineage.items():
-                file.write(f"\\chapter{{{teacher}}}\n")
+                formatted_teacher = format_teacher_name(teacher, "title_first_last")
+                file.write(f"\\chapter{{{formatted_teacher}}}\n")
                 bio = bios.get(teacher, {})
                 if bio:
                     hometown = bio.get("hometown", "Unknown")
@@ -260,7 +315,8 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                     file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\hline\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
-                        file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\ \hline\n")
+                        formatted_student = format_student_name(student, "last_first")
+                        file.write(f"{idx} & {formatted_student} & {date} & {ranking} & {number} \\\\ \hline\n")
 
                     file.write("\\end{longtable}\n")
             file.write("\\end{document}\n")
