@@ -97,6 +97,28 @@ def format_teacher_name(name: str, format_type: str = "title_first_last") -> str
     else:
         return format_student_name(name, format_type)
 
+def generate_bio_paragraph(name: str, bio: dict) -> str:
+    """
+    Generates a paragraph for the instructor bio.
+
+    Args:
+        name (str): The instructor's name.
+        bio (dict): The bio details, including hometown, student_of, and nationality.
+
+    Returns:
+        str: A paragraph summarizing the instructor's bio.
+    """
+    hometown = bio.get("hometown", "an unknown location")
+    student_of = bio.get("student_of", "an unknown instructor")
+    nationality = bio.get("nationality", "unknown")
+
+    # Determine the correct article ("a" or "an") based on the nationality
+    article = "an" if nationality.lower()[0] in "aeiou" else "a"
+
+    return (
+        f"{name}, {article} {nationality} martial artist from {hometown}, is a student of {student_of}."
+    )
+
 def parse_date(date_str: str) -> str:
     """
     Parses a date string into a standard format (YYYY-MM-DD).
@@ -298,12 +320,8 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                 file.write(f"\\chapter{{{formatted_teacher}}}\n")
                 bio = bios.get(teacher, {})
                 if bio:
-                    hometown = bio.get("hometown", "Unknown")
-                    student_of = bio.get("student_of", "Unknown")
-                    nationality = bio.get("nationality", "Unknown")
-                    file.write(f"\\textbf{{Hometown}}: {hometown}\\\\\n")
-                    file.write(f"\\textbf{{Student of}}: {student_of}\\\\\n")
-                    file.write(f"\\textbf{{Nationality}}: {nationality}\\\\\n")
+                    bio_paragraph = generate_bio_paragraph(formatted_teacher, bio)
+                    file.write(f"{bio_paragraph}\\\\\n")
                 else:
                     log_message(f"Bio not found for teacher: {teacher}", log_file, error_code="MISSING_BIO")
                     file.write("Bio information is unavailable.\\\\\n")
