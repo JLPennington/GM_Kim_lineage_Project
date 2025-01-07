@@ -120,6 +120,7 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
     """
     bios = {}
     if not validate_directory(bio_dir):
+        log_message(f"Error: Bios directory not found at {bio_dir}.", log_file, error_code="MISSING_DIR")
         return bios
 
     for filename in os.listdir(bio_dir):
@@ -131,12 +132,14 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
                     bio_data = {}
                     for line in bio_file:
                         if line.startswith("Hometown:"):
-                            bio_data["hometown"] = line.replace("Hometown:", "").strip()
+                            bio_data["hometown"] = line.replace("Hometown:", "").strip() or "Unknown"
                         elif line.startswith("Student of:"):
-                            bio_data["student_of"] = line.replace("Student of:", "").strip()
+                            bio_data["student_of"] = line.replace("Student of:", "").strip() or "Unknown"
                         elif line.startswith("Nationality:"):
-                            bio_data["nationality"] = line.replace("Nationality:", "").strip()
-                    bios[teacher_name] = bio_data
+                            bio_data["nationality"] = line.replace("Nationality:", "").strip() or "Unknown"
+                        else:
+                            log_message(f"Unrecognized line in {filename}: {line.strip()}", log_file, error_code="DATA_WARNING")
+                    bios[reformat_name(teacher_name)] = bio_data
             except FileNotFoundError:
                 log_message(f"Bio file not found: {bio_path}", log_file, error_code="FILE_NOT_FOUND")
             except Exception as e:
@@ -243,7 +246,12 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                     hometown = bio.get("hometown", "Unknown")
                     student_of = bio.get("student_of", "Unknown")
                     nationality = bio.get("nationality", "Unknown")
-                    file.write(f"Hometown: {hometown}\\\nStudent of: {student_of}\\\nNationality: {nationality}\\\n")
+                    file.write(f"\\textbf{{Hometown}}: {hometown}\\\\\n")
+                    file.write(f"\\textbf{{Student of}}: {student_of}\\\\\n")
+                    file.write(f"\\textbf{{Nationality}}: {nationality}\\\\\n")
+                else:
+                    log_message(f"Bio not found for teacher: {teacher}", log_file, error_code="MISSING_BIO")
+                    file.write("Bio information is unavailable.\\\\\n")
 
                 for address, students in locations.items():
                     file.write(f"\\section*{{{address}}}\n")
@@ -288,7 +296,7 @@ def main():
     output_dir = config.get("output_dir", os.getcwd())
     log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
-    license_file = config.get("license_file", os.path.join(os.getcwd(), "LICENSE"))
+    license_file = config.get("license_file", os.path.join(os.path.dirname(os.getcwd()), "LICENSE"))
 
     ensure_directory_exists(output_dir)
 
