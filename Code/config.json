@@ -3,6 +3,7 @@
     "bio_dir": "Bios",
     "intro_dir": "Introduction",
     "output_dir": "Output",
-    "log_file": "error_log.txt"
+    "log_file": "error_log.txt",
+    "license_file": "LICENSE"
   }
   
