@@ -1,0 +1,8 @@
+{
+    "raw_data_dir": "RAW Data",
+    "bio_dir": "Bios",
+    "intro_dir": "Introduction",
+    "output_dir": "Output",
+    "log_file": "error_log.txt"
+  }
+  

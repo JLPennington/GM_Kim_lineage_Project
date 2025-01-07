@@ -1,4 +1,5 @@
 import os
+import json
 from collections import defaultdict
 from datetime import datetime
 
@@ -68,18 +69,43 @@ def parse_date(date_str: str) -> str:
 
     return "Invalid Date Format"
 
-def log_message(message: str, log_file: str = "error_log.txt") -> None:
+def log_message(message: str, log_file: str = "error_log.txt", error_code: str = "INFO") -> None:
     """
     Logs a message to the console and a log file.
 
     Args:
         message (str): The message to log.
         log_file (str): The path to the log file.
+        error_code (str): Error category or code.
     """
     with open(log_file, "a") as log:
-        log.write(f"{message}\n")
+        log.write(f"[{datetime.now()}] [{error_code}] {message}\n")
 
+def validate_directory(path: str) -> bool:
+    """
+    Validates if a directory exists.
 
+    Args:
+        path (str): Directory path.
+
+    Returns:
+        bool: True if valid, False otherwise.
+    """
+    if not os.path.exists(path):
+        log_message(f"Directory not found: {path}", error_code="ERROR")
+        return False
+    return True
+
+def ensure_directory_exists(path: str) -> None:
+    """
+    Ensures a directory exists by creating it if necessary.
+
+    Args:
+        path (str): Directory path.
+    """
+    if not os.path.exists(path):
+        os.makedirs(path)
+        log_message(f"Created directory: {path}", error_code="INFO")
 
 def load_bios(bio_dir: str, log_file: str) -> dict:
     """
@@ -93,8 +119,7 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
         dict: A dictionary of teacher bios.
     """
     bios = {}
-    if not os.path.exists(bio_dir):
-        log_message(f"Error: Bios directory not found at {bio_dir}.", log_file)
+    if not validate_directory(bio_dir):
         return bios
 
     for filename in os.listdir(bio_dir):
@@ -112,8 +137,10 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
                         elif line.startswith("Nationality:"):
                             bio_data["nationality"] = line.replace("Nationality:", "").strip()
                     bios[teacher_name] = bio_data
+            except FileNotFoundError:
+                log_message(f"Bio file not found: {bio_path}", log_file, error_code="FILE_NOT_FOUND")
             except Exception as e:
-                log_message(f"Error reading bio file {bio_path}: {e}", log_file)
+                log_message(f"Error reading bio file {bio_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
     return bios
 
 def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
@@ -125,8 +152,7 @@ def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
         lineage (dict): Dictionary to store lineage information.
         log_file (str): Path to the log file.
     """
-    if not os.path.exists(raw_data_dir):
-        log_message(f"Error: RAW Data directory not found at {raw_data_dir}.", log_file)
+    if not validate_directory(raw_data_dir):
         return
 
     for filename in os.listdir(raw_data_dir):
@@ -138,7 +164,7 @@ def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
                 for line in file:
                     parts = [x.strip() for x in line.split(",")]
                     if len(parts) < 5:
-                        log_message(f"Skipping malformed line in {filename}: {line.strip()}", log_file)
+                        log_message(f"Skipping malformed line in {filename}: {line.strip()}", log_file, error_code="DATA_ERROR")
                         continue
 
                     teacher = reformat_name(parts[0]) or "Unknown Teacher"
@@ -153,10 +179,12 @@ def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
                     if address not in lineage[teacher]:
                         lineage[teacher][address] = []
                     lineage[teacher][address].append((student, date, ranking, number))
+        except FileNotFoundError:
+            log_message(f"File not found: {file_path}", log_file, error_code="FILE_NOT_FOUND")
         except Exception as e:
-            log_message(f"Error processing file {file_path}: {e}", log_file)
+            log_message(f"Error processing file {file_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
 
-def generate_latex(lineage: dict, bios: dict, tex_file: str, output_dir: str, intro_dir: str, license_file: str) -> None:
+def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intro_dir: str, license_file: str) -> None:
     """
     Generates a LaTeX document from lineage and bios data.
 
@@ -164,8 +192,8 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, output_dir: str, in
         lineage (dict): Lineage data.
         bios (dict): Teacher bios.
         tex_file (str): Path to the output LaTeX file.
-        output_dir (str): Path to the output directory.
-        intro_dir (str): Path to the introduction files.
+        log_file (str): Path to the log file.
+        intro_dir (str): Path to the introduction directory.
         license_file (str): Path to the license file.
     """
     try:
@@ -174,114 +202,102 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, output_dir: str, in
             file.write("\\documentclass[oneside]{book}\n")
             file.write("\\usepackage[utf8]{inputenc}\n")
             file.write("\\usepackage{longtable}\n")
-            file.write("\\usepackage{titlesec}\n")
-            file.write("\\titleformat{\\chapter}[display]{\\bfseries\\Huge}{}{0pt}{}[\\vspace{1em}]\n")
+            file.write("\\title{Lineage of Masters}\n")
+            file.write("\\author{Compiled Documentation}\n")
+            file.write("\\date{\\today}\n")
             file.write("\\begin{document}\n")
-            
-            # Title Page
-            file.write("\\begin{titlepage}\n")
-            file.write("\\pagestyle{empty}\n")
-            file.write("\\centering\n")
-            file.write("{\\Huge Lineage of Grand Master Chong Woong Kim}\\par\n")
-            file.write("\\vspace{2cm}\n")
-            file.write("{\\Large Documented and Compiled}\\par\n")
-            file.write("\\vfill\n")
-            file.write("{\\large \\today}\n")
-            file.write("\\end{titlepage}\n")
-            
+            file.write("\\maketitle\n")
+
             # License Page
             file.write("\\clearpage\n")
-            file.write("\\pagestyle{empty}\n")
             file.write("\\chapter*{Copyright and License}\n")
             if os.path.exists(license_file):
                 with open(license_file, "r") as license_f:
                     license_text = license_f.read()
-                file.write(license_text.replace("\n", "\n\n"))
+                file.write(license_text.replace("\n", "\\\\\n") + "\n")
             else:
-                log_message(f"Warning: License file not found at {license_file}.", "error_log.txt")
-                file.write("License information is currently unavailable.\n")
+                log_message(f"License file not found: {license_file}", log_file, error_code="MISSING_LICENSE")
+                file.write("License information is unavailable.\n")
+
+            # Table of Contents
+            file.write("\\tableofcontents\n")
+            file.write("\\clearpage\n")
 
             # Introduction Section
             intro_file = os.path.join(intro_dir, "intro.txt")
             if os.path.exists(intro_file):
                 with open(intro_file, "r") as intro_f:
                     intro_content = intro_f.read()
-                file.write("\\clearpage\n")
                 file.write("\\chapter*{Introduction}\n")
-                file.write(intro_content.replace("\n", "\n\n") + "\n")
+                file.write(intro_content.replace("\n", "\\\\\n") + "\n")
             else:
-                log_message(f"Warning: Introduction file not found at {intro_file}.", "error_log.txt")
-                file.write("\\clearpage\n")
+                log_message(f"Introduction file not found: {intro_file}", log_file, error_code="MISSING_INTRO")
                 file.write("\\chapter*{Introduction}\n")
-                file.write("Introduction content is currently unavailable.\n")
+                file.write("Introduction content is unavailable.\n")
 
-            # Table of Contents
-            file.write("\\clearpage\n")
-            file.write("\\pagestyle{plain}\n")
-            file.write("\\tableofcontents\n")
-            file.write("\\clearpage\n")
-            file.write("\\pagenumbering{arabic}\n")
-
-            for chapter_num, (teacher, locations) in enumerate(lineage.items(), start=1):
-                teacher_clean = teacher.strip().rstrip(",")
-                file.write(f"\\chapter{{{teacher_clean}}}\n")
-                bio = bios.get(teacher_clean, {})
+            # Main Content
+            for teacher, locations in lineage.items():
+                file.write(f"\\chapter{{{teacher}}}\n")
+                bio = bios.get(teacher, {})
                 if bio:
                     hometown = bio.get("hometown", "Unknown")
                     student_of = bio.get("student_of", "Unknown")
                     nationality = bio.get("nationality", "Unknown")
-                    bio_paragraph = (
-                        f"{teacher_clean} is originally from {hometown}. "
-                        f"They studied under {student_of} and hold {nationality} nationality."
-                    )
-                    file.write(f"\\section*{{Biography}}\n{bio_paragraph}\n")
-                else:
-                    log_message(f"Warning: Bio not found for teacher {teacher_clean}.", "error_log.txt")
+                    file.write(f"Hometown: {hometown}\\\nStudent of: {student_of}\\\nNationality: {nationality}\\\n")
 
                 for address, students in locations.items():
                     file.write(f"\\section*{{{address}}}\n")
                     file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
                     file.write("\\hline\n")
-                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\n")
-                    file.write("\\hline\n")
-                    file.write("\\endhead\n")
+                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\hline\n")
+
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
-                        file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\n")
-                        file.write("\\hline\n")
+                        file.write(f"{idx} & {student} & {date} & {ranking} & {number} \\\\ \hline\n")
+
                     file.write("\\end{longtable}\n")
             file.write("\\end{document}\n")
     except Exception as e:
-        log_message(f"Error writing LaTeX file: {e}", "error_log.txt")
+        log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
 
-if __name__ == "__main__":
-    current_dir = os.getcwd()
-    raw_data_dir = os.path.join(current_dir, "RAW Data")
-    bio_dir = os.path.join(current_dir, "Bios")
-    intro_dir = os.path.join(current_dir, "Introduction")
-    output_dir = os.path.dirname(current_dir)
+def load_config(config_file: str) -> dict:
+    """
+    Loads configuration from a JSON file.
+
+    Args:
+        config_file (str): Path to the configuration file.
+
+    Returns:
+        dict: Configuration dictionary.
+    """
+    try:
+        with open(config_file, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        log_message(f"Config file not found: {config_file}", error_code="FILE_NOT_FOUND")
+        return {}
+    except json.JSONDecodeError:
+        log_message(f"Error decoding JSON in config file: {config_file}", error_code="JSON_ERROR")
+        return {}
+
+def main():
+    config = load_config("config.json")
+
+    raw_data_dir = config.get("raw_data_dir", "RAW Data")
+    bio_dir = config.get("bio_dir", "Bios")
+    intro_dir = config.get("intro_dir", "Introduction")
+    output_dir = config.get("output_dir", os.getcwd())
+    log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
-    log_file = os.path.join(output_dir, "error_log.txt")
-    license_file = os.path.join(os.path.dirname(current_dir), "LICENSE")
+    license_file = config.get("license_file", os.path.join(os.getcwd(), "LICENSE"))
 
-    # Clear the error log at the start
-    if os.path.exists(log_file):
-        os.remove(log_file)
+    ensure_directory_exists(output_dir)
 
     lineage = defaultdict(dict)
     bios = load_bios(bio_dir, log_file)
-
-    if not os.path.exists(raw_data_dir):
-        log_message(f"RAW Data directory not found: {raw_data_dir}", log_file)
-    if not os.path.exists(bio_dir):
-        log_message(f"Bios directory not found: {bio_dir}", log_file)
-    if not os.path.exists(intro_dir):
-        log_message(f"Introduction directory not found: {intro_dir}", log_file)
-    if not os.path.exists(license_file):
-        log_message(f"License file not found: {license_file}", log_file)
-
     parse_raw_data(raw_data_dir, lineage, log_file)
+    generate_latex(lineage, bios, tex_file, log_file, intro_dir, license_file)
 
-    generate_latex(lineage, bios, tex_file, output_dir, intro_dir, license_file)
+    log_message(f"LaTeX document generated at: {tex_file}", log_file, error_code="SUCCESS")
 
-    log_message(f"LaTeX document generated at: {tex_file}", log_file)
-    log_message(f"Error log can be found at: {log_file}", log_file)
+if __name__ == "__main__":
+    main()
