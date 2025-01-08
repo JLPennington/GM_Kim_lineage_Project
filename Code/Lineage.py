@@ -244,44 +244,50 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
 
 def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
     """
-    Parses raw data files to populate a lineage dictionary.
+    Parses raw data files to populate the lineage dictionary.
 
     Args:
         raw_data_dir (str): Path to the directory containing raw data files.
         lineage (dict): Dictionary to store lineage information.
-        log_file (str): Path to the log file.
+        log_file (str): Path to the log file for logging errors or warnings.
     """
-    if not validate_directory(raw_data_dir):
-        return
+    try:
+        if not os.path.exists(raw_data_dir):
+            log_message(f"Raw data directory not found: {raw_data_dir}", log_file, error_code="MISSING_DIR")
+            return
 
-    for filename in os.listdir(raw_data_dir):
-        file_path = os.path.join(raw_data_dir, filename)
-        if not filename.endswith(".txt"):
-            continue
-        try:
-            with open(file_path, "r") as file:
-                for line in file:
-                    parts = [x.strip() for x in line.split(",")]
-                    if len(parts) < 5:
-                        log_message(f"Skipping malformed line in {filename}: {line.strip()}", log_file, error_code="DATA_ERROR")
-                        continue
+        for filename in os.listdir(raw_data_dir):
+            file_path = os.path.join(raw_data_dir, filename)
+            if not filename.endswith(".txt"):
+                log_message(f"Skipped non-text file: {filename}", log_file, error_code="SKIPPED_FILE")
+                continue
 
-                    teacher = reformat_name(parts[0]) or "Unknown Teacher"
-                    address = parts[1] or "Unknown Address"
-                    student = parts[2] or "Unknown Student"
-                    date = parse_date(parts[3])
-                    ranking = parts[4] or "Unknown Ranking"
-                    number = parts[5] if len(parts) > 5 else "N/A"
+            try:
+                with open(file_path, "r") as file:
+                    for line in file:
+                        parts = [part.strip() for part in line.split(",")]
+                        if len(parts) < 5:
+                            log_message(f"Malformed line in {filename}: {line.strip()}", log_file, error_code="DATA_ERROR")
+                            continue
 
-                    if teacher not in lineage:
-                        lineage[teacher] = {}
-                    if address not in lineage[teacher]:
-                        lineage[teacher][address] = []
-                    lineage[teacher][address].append((student, date, ranking, number))
-        except FileNotFoundError:
-            log_message(f"File not found: {file_path}", log_file, error_code="FILE_NOT_FOUND")
-        except Exception as e:
-            log_message(f"Error processing file {file_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
+                        teacher = parts[0]
+                        address = parts[1]
+                        student = parts[2]
+                        date = parts[3]
+                        ranking = parts[4]
+                        number = parts[5] if len(parts) > 5 else "N/A"
+
+                        if teacher not in lineage:
+                            lineage[teacher] = {}
+                        if address not in lineage[teacher]:
+                            lineage[teacher][address] = []
+                        lineage[teacher][address].append((student, date, ranking, number))
+
+            except Exception as e:
+                log_message(f"Error processing file {file_path}: {e}", log_file, error_code="FILE_ERROR")
+    except Exception as e:
+        log_message(f"Unexpected error in parse_raw_data: {e}", log_file, error_code="UNKNOWN_ERROR")
+
 
 def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intro_dir: str, license_file: str) -> None:
     """
@@ -303,6 +309,10 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
         return text
 
     try:
+        # Ensure the license_file is correctly referenced
+        if not os.path.isabs(license_file):
+            license_file = os.path.join(os.path.dirname(os.getcwd()), license_file)
+
         with open(tex_file, "w") as file:
             # LaTeX document preamble
             file.write("\\documentclass[oneside]{book}\n")
@@ -362,7 +372,7 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                     file.write(f"\\section*{{{escape_latex_special_characters(address)}}}\n")
                     file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
                     file.write("\\hline\n")
-                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\\\\ \\hline\n")
+                    file.write("\\textbf{No.} & \textbf{Student Name} & \textbf{Date} & \textbf{Ranking} & \textbf{Number} \\\\\\\\ \\hline\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         formatted_student = escape_latex_special_characters(format_student_name(student, "last_first"))
@@ -377,7 +387,7 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
             file.write("\\chapter{Index}\n")
             file.write("\\begin{longtable}{|p{6cm}|p{8cm}|}\n")
             file.write("\\hline\n")
-            file.write("\\textbf{Name} & \\textbf{Page Numbers} \\\\\\\\ \\hline\n")
+            file.write("\\textbf{Name} & \textbf{Page Numbers} \\\\\\\\ \\hline\n")
             for name, labels in sorted(names_with_pages.items()):
                 pages_str = ", ".join([f"\\pageref{{{label}}}" for label in sorted(labels)])
                 file.write(f"{escape_latex_special_characters(name)} & {pages_str} \\\\\\\\ \\hline\n")
@@ -386,6 +396,7 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
             file.write("\\end{document}\n")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
+
 
 
 
