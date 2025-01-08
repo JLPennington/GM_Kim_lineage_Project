@@ -330,7 +330,7 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                     file.write(f"\\section*{{{address}}}\n")
                     file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
                     file.write("\\hline\n")
-                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\hline\n")
+                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\ \hline\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         formatted_student = format_student_name(student, "last_first")
