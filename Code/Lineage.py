@@ -298,66 +298,74 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
     try:
         with open(tex_file, "w") as file:
             # LaTeX document preamble
-            file.write("\\documentclass[oneside]{book}\n")
-            file.write("\\usepackage[utf8]{inputenc}\n")
-            file.write("\\usepackage{longtable}\n")
-            file.write("\\title{Lineage of Masters}\n")
-            file.write("\\author{Compiled Documentation}\n")
-            file.write("\\date{\\today}\n")
-            file.write("\\begin{document}\n")
-            file.write("\\maketitle\n")
+            file.write("\\documentclass[oneside]{book}\\n")
+            file.write("\\usepackage[utf8]{inputenc}\\n")
+            file.write("\\usepackage{longtable}\\n")
+            file.write("\\usepackage{hyperref}\\n")
+            file.write("\\title{Lineage of Masters}\\n")
+            file.write("\\author{Compiled Documentation}\\n")
+            file.write("\\date{\\today}\\n")
+            file.write("\\begin{document}\\n")
+            file.write("\\maketitle\\n")
 
             # License Page
-            file.write("\\clearpage\n")
-            file.write("\\chapter*{Copyright and License}\n")
+            file.write("\\clearpage\\n")
+            file.write("\\chapter*{Copyright and License}\\n")
             if os.path.exists(license_file):
                 with open(license_file, "r") as license_f:
                     license_text = license_f.read()
-                file.write(license_text.replace("\n", "\\\\\n") + "\n")
+                file.write(license_text.replace("\\n", "\\\\\\\\n") + "\\n")
             else:
                 log_message(f"License file not found: {license_file}", log_file, error_code="MISSING_LICENSE")
-                file.write("License information is unavailable.\n")
+                file.write("License information is unavailable.\\n")
 
             # Table of Contents
-            file.write("\\tableofcontents\n")
-            file.write("\\clearpage\n")
+            file.write("\\tableofcontents\\n")
+            file.write("\\clearpage\\n")
 
             # Introduction Section
             intro_file = os.path.join(intro_dir, "intro.txt")
             if os.path.exists(intro_file):
                 with open(intro_file, "r") as intro_f:
                     intro_content = intro_f.read()
-                file.write("\\chapter*{Introduction}\n")
-                file.write(intro_content.replace("\n", "\\\\\n") + "\n")
+                file.write("\\chapter*{Introduction}\\n")
+                file.write(intro_content.replace("\\n", "\\\\\\\\n") + "\\n")
             else:
                 log_message(f"Introduction file not found: {intro_file}", log_file, error_code="MISSING_INTRO")
-                file.write("\\chapter*{Introduction}\n")
-                file.write("Introduction content is unavailable.\n")
+                file.write("\\chapter*{Introduction}\\n")
+                file.write("Introduction content is unavailable.\\n")
 
-            # Main Content
+            # Main Content and Index Collection
+            names_with_pages = defaultdict(set)
             for teacher, locations in lineage.items():
                 formatted_teacher = format_teacher_name(teacher, "title_first_last")
-                file.write(f"\\chapter{{{formatted_teacher}}}\n")
+                file.write(f"\\chapter{{{formatted_teacher}}}\\n")
+                names_with_pages[formatted_teacher].add(file.tell())
                 bio = bios.get(teacher, {})
                 if bio:
                     bio_paragraph = generate_bio_paragraph(formatted_teacher, bio)
-                    file.write(f"{bio_paragraph}\\\\\n")
+                    file.write(f"{bio_paragraph}\\\\\\\\\\n")
                 else:
                     log_message(f"Bio not found for teacher: {teacher}", log_file, error_code="MISSING_BIO")
-                    file.write("Bio information is unavailable.\\\\\n")
+                    file.write("Bio information is unavailable.\\\\\\\\\\n")
 
                 for address, students in locations.items():
-                    file.write(f"\\section*{{{address}}}\n")
-                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
-                    file.write("\\hline\n")
-                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\ \hline\n")
+                    file.write(f"\\section*{{{address}}}\\n")
+                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\\n")
+                    file.write("\\hline\\n")
+                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\\\\ \\hline\\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         formatted_student = format_student_name(student, "last_first")
-                        file.write(f"{idx} & {formatted_student} & {date} & {ranking} & {number} \\\\ \hline\n")
+                        names_with_pages[formatted_student].add(file.tell())
+                        file.write(f"{idx} & {formatted_student} & {date} & {ranking} & {number} \\\\\\\\ \\hline\\n")
 
-                    file.write("\\end{longtable}\n")
-            file.write("\\end{document}\n")
+                    file.write("\\end{longtable}\\n")
+
+            # Generate Index
+            generate_index(names_with_pages, file)
+
+            file.write("\\end{document}\\n")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
 
