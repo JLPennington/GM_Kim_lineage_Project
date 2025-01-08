@@ -119,6 +119,26 @@ def generate_bio_paragraph(name: str, bio: dict) -> str:
         f"{name}, {article} {nationality} martial artist from {hometown}, is a student of {student_of}."
     )
 
+def generate_index(names_with_pages: dict, file) -> None:
+    """
+    Generates an index for all names with page numbers.
+
+    Args:
+        names_with_pages (dict): A dictionary mapping names to page numbers.
+        file: The LaTeX file object to write the index into.
+    """
+    file.write("\\chapter{Index}\\n")
+    file.write("\\begin{longtable}{|p{6cm}|p{8cm}|}\\n")
+    file.write("\\hline\\n")
+    file.write("\\textbf{Name} & \\textbf{Page Numbers} \\\\\\ \\hline\\n")
+
+    for name, pages in sorted(names_with_pages.items()):
+        pages_str = ", ".join(map(str, sorted(pages)))
+        file.write(f"{name} & {pages_str} \\\\\\ \\hline\\n")
+
+    file.write("\\end{longtable}\\n")
+
+
 def parse_date(date_str: str) -> str:
     """
     Parses a date string into a standard format (YYYY-MM-DD).
