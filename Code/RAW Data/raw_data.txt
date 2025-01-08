@@ -1,0 +1,300 @@
+Mr. Davis, Incheon, Kim Jeong, 2011-10-14, 5th Dan, STU4939
+Master Kim, Los Angeles, Davis Johnson, 2009-06-07, 5th Dan, STU7863
+Grand Master Lee, Mumbai, Davis Davis, 2006-07-01, 10th Dan, STU9860
+Grand Master Park, Beijing, Smith Choi, 2006-04-28, 4th Dan, STU3225
+Grand Master Park, Tokyo, Park Jeong, 2009-03-23, 6th Dan, STU9666
+Mr. Davis, Incheon, Brown Lee, 2004-02-26, 10th Dan, STU6332
+Grand Master Brown, Seoul, Davis Williams, 2017-02-10, 10th Dan, STU3616
+Ms. Johnson, Busan, Choi Davis, 2020-03-14, 4th Dan, STU1268
+Master Kim, Los Angeles, Lee Park, 2009-05-14, 4th Dan, STU4017
+Mrs. Williams, Sydney, Lee Park, 2001-02-11, 2th Dan, STU3891
+Master Smith, Sydney, Brown Choi, 2010-12-12, 9th Dan, STU2257
+Mrs. Lee, Busan, Park Davis, 2004-10-15, 8th Dan, STU1233
+Mr. Davis, London, Brown Brown, 2003-12-09, 1th Dan, STU6243
+Mr. Johnson, Tokyo, Park Johnson, 2010-09-16, 7th Dan, STU6470
+Grand Master Brown, Seoul, Johnson Choi, 2000-01-20, 10th Dan, STU2723
+Mr. Kim, Busan, Johnson Johnson, 2009-10-03, 1th Dan, STU1975
+Mrs. Choi, Mumbai, Park Park, 2002-10-01, 4th Dan, STU7155
+Mr. Davis, Busan, Park Brown, 2008-05-15, 7th Dan, STU8143
+Mr. Davis, Mumbai, Park Brown, 2020-03-26, 2th Dan, STU8176
+Mr. Davis, London, Jeong Davis, 2008-06-21, 4th Dan, STU1187
+Master Smith, Mumbai, Lee Smith, 2011-08-25, 3th Dan, STU6713
+Ms. Brown, Los Angeles, Kim Williams, 2023-10-23, 9th Dan, STU4045
+Mr. Kim, London, Johnson Choi, 2011-09-25, 4th Dan, STU5866
+Master Kim, Seoul, Park Brown, 2006-03-15, 9th Dan, STU3732
+Master Kim, Tokyo, Johnson Davis, 2003-05-16, 10th Dan, STU9225
+Mr. Davis, Seoul, Park Davis, 2007-12-15, 3th Dan, STU6668
+Mr. Smith, Incheon, Lee Smith, 2011-12-25, 4th Dan, STU7852
+Mr. Smith, Mumbai, Brown Johnson, 2000-05-05, 10th Dan, STU2796
+Grand Master Brown, Tokyo, Jeong Smith, 2005-06-17, 4th Dan, STU2956
+Mrs. Lee, Tokyo, Choi Smith, 2019-02-01, 6th Dan, STU6495
+Mr. Johnson, Tokyo, Brown Park, 2010-03-27, 6th Dan, STU1600
+Ms. Johnson, Beijing, Smith Lee, 2003-04-04, 1th Dan, STU4776
+Mrs. Lee, Incheon, Johnson Brown, 2017-09-03, 3th Dan, STU8044
+Mr. Davis, Seoul, Lee Park, 2022-08-22, 7th Dan, STU2661
+Mrs. Williams, Sydney, Lee Park, 2006-09-01, 7th Dan, STU3817
+Master Kim, Los Angeles, Johnson Park, 2002-09-07, 4th Dan, STU8338
+Grand Master Park, Beijing, Park Choi, 2003-03-06, 7th Dan, STU4890
+Grand Master Brown, Incheon, Jeong Brown, 2003-01-12, 3th Dan, STU2425
+Mrs. Williams, Los Angeles, Williams Lee, 2020-10-12, 8th Dan, STU7541
+Mrs. Choi, Los Angeles, Brown Jeong, 2022-09-23, 8th Dan, STU7646
+Ms. Brown, Sydney, Brown Williams, 2010-05-26, 8th Dan, STU5274
+Grand Master Lee, New York, Davis Park, 2005-01-05, 6th Dan, STU8995
+Master Smith, London, Davis Brown, 2008-08-16, 1th Dan, STU4303
+Ms. Johnson, Busan, Johnson Park, 2000-11-25, 1th Dan, STU5085
+Grand Master Park, Beijing, Jeong Choi, 2022-03-13, 2th Dan, STU9073
+Grand Master Brown, Beijing, Lee Johnson, 2015-03-16, 6th Dan, STU8493
+Mr. Johnson, Beijing, Brown Brown, 2010-05-22, 1th Dan, STU8602
+Master Smith, Los Angeles, Jeong Jeong, 2005-11-15, 3th Dan, STU4988
+Grand Master Park, London, Brown Johnson, 2007-11-18, 4th Dan, STU7289
+Mrs. Lee, Seoul, Lee Johnson, 2022-03-18, 9th Dan, STU7402
+Master Lee, Beijing, Brown Williams, 2017-11-25, 9th Dan, STU7734
+Master Smith, Seoul, Park Smith, 2010-04-18, 4th Dan, STU4128
+Master Kim, Los Angeles, Choi Lee, 2019-12-10, 3th Dan, STU8548
+Mr. Kim, Incheon, Williams Lee, 2001-04-02, 6th Dan, STU8855
+Grand Master Park, New York, Choi Brown, 2003-01-22, 4th Dan, STU4681
+Mr. Davis, Tokyo, Choi Park, 2010-02-01, 6th Dan, STU4531
+Master Kim, Los Angeles, Lee Jeong, 2016-04-11, 5th Dan, STU3790
+Master Smith, London, Williams Johnson, 2022-09-14, 3th Dan, STU5505
+Master Kim, Mumbai, Choi Lee, 2018-09-10, 8th Dan, STU5703
+Ms. Brown, Beijing, Williams Johnson, 2013-06-22, 10th Dan, STU8523
+Ms. Johnson, London, Brown Jeong, 2006-11-28, 7th Dan, STU2632
+Master Smith, Tokyo, Johnson Jeong, 2002-04-07, 1th Dan, STU6518
+Ms. Brown, Seoul, Davis Lee, 2003-09-24, 6th Dan, STU9375
+Mrs. Williams, Tokyo, Davis Davis, 2013-06-23, 9th Dan, STU6032
+Mrs. Williams, Busan, Choi Park, 2006-01-14, 9th Dan, STU8132
+Master Smith, Tokyo, Jeong Brown, 2006-10-28, 2th Dan, STU6073
+Mr. Kim, Beijing, Lee Jeong, 2012-03-10, 10th Dan, STU1704
+Grand Master Lee, Seoul, Davis Lee, 2002-01-12, 7th Dan, STU5177
+Mr. Davis, Seoul, Jeong Johnson, 2000-12-25, 4th Dan, STU7110
+Mr. Smith, Sydney, Choi Williams, 2004-11-08, 2th Dan, STU5891
+Master Lee, Seoul, Jeong Choi, 2011-03-03, 9th Dan, STU8672
+Master Smith, Mumbai, Smith Davis, 2013-01-28, 4th Dan, STU4715
+Master Lee, New York, Kim Lee, 2019-07-17, 7th Dan, STU4078
+Grand Master Park, Incheon, Lee Kim, 2011-02-08, 8th Dan, STU4442
+Mrs. Williams, Sydney, Park Smith, 2017-10-05, 1th Dan, STU9861
+Ms. Brown, Beijing, Williams Johnson, 2005-06-05, 2th Dan, STU5658
+Master Kim, Busan, Kim Davis, 2018-02-09, 2th Dan, STU3779
+Ms. Brown, Beijing, Davis Brown, 2015-08-05, 5th Dan, STU6717
+Mr. Johnson, New York, Johnson Smith, 2006-12-05, 2th Dan, STU1632
+Master Kim, London, Johnson Jeong, 2009-12-01, 5th Dan, STU8714
+Master Kim, Beijing, Kim Johnson, 2002-08-20, 4th Dan, STU3735
+Master Lee, Seoul, Williams Williams, 2021-02-23, 1th Dan, STU6073
+Master Lee, Los Angeles, Choi Kim, 2018-12-12, 1th Dan, STU3962
+Master Smith, Sydney, Smith Park, 2012-06-19, 6th Dan, STU6472
+Grand Master Park, New York, Park Smith, 2009-09-27, 9th Dan, STU1174
+Master Kim, Los Angeles, Kim Brown, 2018-08-16, 3th Dan, STU2625
+Mrs. Williams, Seoul, Davis Johnson, 2001-11-03, 5th Dan, STU2448
+Mr. Davis, Incheon, Brown Johnson, 2013-05-19, 8th Dan, STU5763
+Master Kim, Beijing, Johnson Brown, 2023-02-26, 4th Dan, STU2814
+Grand Master Lee, Tokyo, Kim Park, 2015-02-24, 6th Dan, STU1727
+Mr. Davis, Seoul, Davis Choi, 2012-03-25, 4th Dan, STU8422
+Mr. Davis, Mumbai, Williams Choi, 2021-02-21, 10th Dan, STU1507
+Master Kim, Busan, Park Davis, 2012-06-05, 2th Dan, STU1099
+Master Smith, Seoul, Brown Jeong, 2016-09-02, 3th Dan, STU7958
+Grand Master Lee, Tokyo, Brown Kim, 2015-04-19, 5th Dan, STU1566
+Master Smith, Mumbai, Choi Brown, 2010-11-27, 10th Dan, STU7819
+Mrs. Brown, Los Angeles, Williams Jeong, 2017-06-15, 2th Dan, STU8060
+Ms. Johnson, Los Angeles, Lee Lee, 2000-12-07, 6th Dan, STU3541
+Grand Master Lee, London, Johnson Brown, 2005-01-01, 6th Dan, STU2670
+Mr. Smith, New York, Kim Johnson, 2018-08-02, 9th Dan, STU8679
+Mrs. Brown, Beijing, Kim Johnson, 2011-06-15, 7th Dan, STU7038
+Master Kim, Tokyo, Johnson Johnson, 2003-07-21, 9th Dan, STU8121
+Mrs. Lee, Seoul, Davis Choi, 2001-02-25, 5th Dan, STU2689
+Master Kim, Los Angeles, Brown Williams, 2017-11-04, 4th Dan, STU1868
+Grand Master Brown, Busan, Jeong Brown, 2010-05-03, 5th Dan, STU5974
+Mr. Johnson, Los Angeles, Park Jeong, 2014-04-07, 4th Dan, STU7063
+Grand Master Brown, New York, Williams Choi, 2006-02-21, 1th Dan, STU8226
+Master Smith, Beijing, Lee Davis, 2010-06-07, 5th Dan, STU9667
+Mr. Johnson, Beijing, Williams Choi, 2016-01-20, 2th Dan, STU8456
+Master Lee, Los Angeles, Brown Kim, 2008-09-09, 4th Dan, STU1302
+Mr. Johnson, Los Angeles, Choi Lee, 2008-03-25, 9th Dan, STU1393
+Mrs. Williams, Beijing, Jeong Lee, 2002-08-08, 7th Dan, STU2789
+Master Lee, Beijing, Jeong Lee, 2003-06-14, 6th Dan, STU6398
+Master Smith, Mumbai, Park Park, 2013-05-16, 7th Dan, STU7370
+Mr. Smith, Incheon, Lee Park, 2011-04-06, 3th Dan, STU4424
+Master Kim, London, Park Davis, 2021-03-13, 8th Dan, STU4946
+Ms. Brown, Seoul, Kim Park, 2000-08-26, 5th Dan, STU8841
+Mrs. Lee, Seoul, Smith Brown, 2002-06-19, 9th Dan, STU8766
+Mrs. Williams, Beijing, Brown Lee, 2007-12-12, 9th Dan, STU5311
+Mr. Smith, Los Angeles, Park Williams, 2007-04-26, 8th Dan, STU2079
+Mrs. Williams, London, Kim Davis, 2013-04-15, 2th Dan, STU3705
+Mr. Davis, Beijing, Kim Jeong, 2004-06-10, 4th Dan, STU2043
+Ms. Johnson, New York, Jeong Williams, 2017-06-20, 6th Dan, STU4457
+Mr. Davis, London, Lee Choi, 2023-05-06, 3th Dan, STU5886
+Grand Master Brown, Busan, Brown Choi, 2000-12-24, 7th Dan, STU6718
+Mrs. Lee, New York, Kim Choi, 2018-03-16, 2th Dan, STU2803
+Mr. Davis, London, Davis Lee, 2014-07-20, 8th Dan, STU1771
+Master Kim, Incheon, Davis Kim, 2000-04-16, 4th Dan, STU2052
+Master Smith, Beijing, Choi Park, 2007-08-28, 6th Dan, STU2130
+Grand Master Park, London, Davis Lee, 2020-08-02, 6th Dan, STU1859
+Grand Master Park, Seoul, Brown Brown, 2015-10-22, 1th Dan, STU8887
+Mr. Johnson, Tokyo, Williams Jeong, 2020-01-07, 4th Dan, STU6988
+Mrs. Brown, Beijing, Lee Smith, 2016-06-26, 3th Dan, STU1974
+Master Kim, Seoul, Johnson Kim, 2022-05-07, 3th Dan, STU6563
+Master Lee, Sydney, Jeong Smith, 2017-01-12, 1th Dan, STU5634
+Master Smith, Beijing, Jeong Choi, 2007-03-27, 8th Dan, STU3912
+Master Smith, Mumbai, Johnson Davis, 2004-06-18, 2th Dan, STU4792
+Mrs. Williams, Mumbai, Jeong Davis, 2009-12-04, 2th Dan, STU1645
+Master Kim, Sydney, Smith Lee, 2003-01-03, 4th Dan, STU5322
+Master Smith, Mumbai, Jeong Williams, 2022-11-17, 8th Dan, STU7458
+Mr. Johnson, Seoul, Johnson Lee, 2007-05-26, 2th Dan, STU5837
+Master Lee, London, Kim Smith, 2019-12-12, 10th Dan, STU9459
+Mr. Davis, Beijing, Davis Kim, 2001-10-21, 7th Dan, STU3469
+Master Smith, Sydney, Park Choi, 2011-01-07, 1th Dan, STU8669
+Mrs. Williams, Mumbai, Johnson Smith, 2023-12-05, 6th Dan, STU7963
+Grand Master Lee, Los Angeles, Jeong Park, 2011-07-05, 10th Dan, STU6685
+Grand Master Park, London, Park Johnson, 2017-01-03, 10th Dan, STU5566
+Grand Master Brown, Beijing, Davis Williams, 2010-12-28, 1th Dan, STU8607
+Mr. Davis, New York, Lee Choi, 2004-05-23, 9th Dan, STU4918
+Mr. Smith, Incheon, Smith Johnson, 2014-03-06, 7th Dan, STU3067
+Master Lee, Seoul, Kim Jeong, 2000-12-20, 4th Dan, STU3661
+Grand Master Park, Beijing, Johnson Kim, 2023-04-25, 4th Dan, STU4709
+Mrs. Williams, Tokyo, Jeong Davis, 2007-11-10, 7th Dan, STU4888
+Mr. Smith, Beijing, Smith Lee, 2016-02-28, 2th Dan, STU5661
+Mrs. Williams, Busan, Davis Brown, 2005-07-19, 9th Dan, STU5150
+Grand Master Brown, Mumbai, Choi Williams, 2021-06-01, 2th Dan, STU2948
+Mrs. Williams, Los Angeles, Jeong Park, 2006-07-03, 4th Dan, STU6519
+Mrs. Williams, Los Angeles, Jeong Park, 2020-05-02, 9th Dan, STU5801
+Mr. Johnson, Los Angeles, Brown Kim, 2012-07-18, 8th Dan, STU8516
+Master Kim, London, Jeong Kim, 2013-06-11, 8th Dan, STU6419
+Mrs. Brown, Sydney, Lee Johnson, 2022-10-15, 7th Dan, STU9614
+Mr. Davis, Los Angeles, Kim Kim, 2015-03-14, 3th Dan, STU8539
+Grand Master Brown, New York, Williams Choi, 2014-06-25, 1th Dan, STU4213
+Mr. Smith, Beijing, Williams Park, 2016-08-08, 6th Dan, STU3799
+Mr. Davis, Mumbai, Park Davis, 2006-07-03, 2th Dan, STU5190
+Master Kim, Beijing, Brown Kim, 2005-08-21, 4th Dan, STU8606
+Mrs. Williams, Busan, Kim Park, 2004-04-25, 9th Dan, STU3087
+Ms. Brown, Sydney, Davis Choi, 2013-12-26, 1th Dan, STU5606
+Grand Master Lee, Mumbai, Johnson Park, 2013-11-17, 4th Dan, STU5494
+Master Smith, Beijing, Williams Johnson, 2008-08-16, 9th Dan, STU1679
+Mr. Davis, Sydney, Brown Lee, 2010-05-14, 6th Dan, STU2939
+Mrs. Brown, London, Park Choi, 2017-05-15, 6th Dan, STU6123
+Master Smith, London, Smith Davis, 2004-03-23, 6th Dan, STU7897
+Master Lee, Beijing, Johnson Smith, 2011-04-08, 10th Dan, STU1689
+Master Lee, Los Angeles, Kim Lee, 2013-11-18, 7th Dan, STU3007
+Master Smith, Mumbai, Davis Brown, 2000-09-25, 9th Dan, STU5432
+Master Smith, Mumbai, Davis Choi, 2004-03-03, 10th Dan, STU3633
+Ms. Brown, Mumbai, Kim Park, 2021-01-25, 6th Dan, STU2612
+Mr. Davis, London, Brown Williams, 2012-09-10, 4th Dan, STU5864
+Mrs. Williams, Sydney, Davis Johnson, 2020-06-04, 1th Dan, STU1466
+Grand Master Brown, Los Angeles, Park Park, 2006-06-17, 1th Dan, STU3907
+Mrs. Brown, New York, Williams Park, 2007-08-05, 3th Dan, STU6652
+Master Smith, Seoul, Choi Williams, 2003-10-09, 3th Dan, STU6301
+Mrs. Brown, Tokyo, Lee Jeong, 2000-04-13, 4th Dan, STU2230
+Mr. Kim, Sydney, Jeong Park, 2018-09-03, 7th Dan, STU5785
+Mr. Davis, Busan, Choi Jeong, 2012-11-24, 2th Dan, STU1390
+Mrs. Williams, Incheon, Brown Jeong, 2021-04-13, 8th Dan, STU5944
+Mrs. Brown, New York, Johnson Johnson, 2000-04-11, 6th Dan, STU9797
+Mrs. Brown, Seoul, Williams Williams, 2015-03-11, 4th Dan, STU9699
+Mrs. Brown, Beijing, Smith Lee, 2022-02-11, 7th Dan, STU4527
+Ms. Johnson, New York, Smith Johnson, 2008-11-28, 2th Dan, STU6584
+Master Kim, New York, Brown Lee, 2022-01-13, 3th Dan, STU2736
+Mr. Davis, London, Williams Park, 2006-02-15, 10th Dan, STU6204
+Master Lee, Incheon, Smith Choi, 2004-01-27, 1th Dan, STU9022
+Master Lee, Beijing, Johnson Davis, 2020-10-20, 5th Dan, STU9972
+Master Kim, Los Angeles, Johnson Davis, 2009-05-25, 7th Dan, STU3539
+Mrs. Williams, Mumbai, Lee Jeong, 2017-12-23, 4th Dan, STU9080
+Ms. Brown, Sydney, Park Johnson, 2011-02-13, 8th Dan, STU7554
+Grand Master Brown, London, Williams Lee, 2005-01-14, 1th Dan, STU2002
+Master Smith, Busan, Brown Johnson, 2014-06-03, 3th Dan, STU1297
+Master Kim, Sydney, Williams Park, 2013-10-05, 3th Dan, STU4485
+Grand Master Park, Mumbai, Lee Johnson, 2015-05-03, 7th Dan, STU5730
+Mr. Smith, Los Angeles, Johnson Park, 2004-05-25, 4th Dan, STU3565
+Master Smith, Incheon, Park Choi, 2019-10-13, 10th Dan, STU1810
+Master Kim, Busan, Brown Brown, 2023-06-13, 1th Dan, STU9158
+Master Kim, Seoul, Brown Jeong, 2007-05-18, 5th Dan, STU8685
+Master Smith, Los Angeles, Choi Kim, 2016-07-01, 9th Dan, STU7186
+Master Kim, Tokyo, Choi Choi, 2017-08-28, 5th Dan, STU1970
+Mr. Smith, Los Angeles, Williams Davis, 2007-05-13, 1th Dan, STU3903
+Mrs. Williams, Mumbai, Kim Johnson, 2010-02-22, 2th Dan, STU9677
+Mrs. Williams, Beijing, Jeong Kim, 2006-08-10, 3th Dan, STU1121
+Ms. Johnson, Sydney, Kim Kim, 2001-02-28, 9th Dan, STU6818
+Mrs. Williams, New York, Davis Lee, 2014-06-24, 5th Dan, STU3646
+Master Kim, Mumbai, Davis Davis, 2021-11-15, 5th Dan, STU1585
+Mr. Johnson, Incheon, Lee Lee, 2005-04-19, 8th Dan, STU7600
+Master Lee, London, Williams Smith, 2020-09-10, 8th Dan, STU2374
+Ms. Johnson, Incheon, Park Davis, 2005-05-27, 6th Dan, STU7258
+Master Smith, Beijing, Lee Davis, 2000-03-27, 4th Dan, STU4687
+Ms. Brown, Mumbai, Kim Jeong, 2011-02-27, 4th Dan, STU7078
+Master Kim, Beijing, Williams Davis, 2008-11-24, 2th Dan, STU7946
+Grand Master Park, Beijing, Davis Choi, 2016-07-27, 7th Dan, STU2186
+Grand Master Brown, Incheon, Williams Lee, 2009-04-19, 2th Dan, STU8679
+Mr. Johnson, Los Angeles, Lee Williams, 2001-06-02, 3th Dan, STU3693
+Mrs. Brown, Los Angeles, Park Davis, 2017-01-27, 2th Dan, STU1090
+Grand Master Park, New York, Jeong Lee, 2022-01-26, 8th Dan, STU1282
+Master Smith, Tokyo, Park Johnson, 2009-07-04, 10th Dan, STU2516
+Mr. Davis, Incheon, Park Williams, 2022-06-07, 8th Dan, STU2335
+Mrs. Lee, Tokyo, Jeong Brown, 2001-07-04, 1th Dan, STU6652
+Master Kim, New York, Choi Davis, 2009-12-20, 8th Dan, STU6780
+Master Kim, Los Angeles, Johnson Brown, 2004-09-16, 9th Dan, STU9499
+Mrs. Williams, Tokyo, Davis Davis, 2013-10-13, 1th Dan, STU4499
+Master Kim, Los Angeles, Jeong Williams, 2005-11-17, 1th Dan, STU5359
+Mr. Johnson, Tokyo, Johnson Brown, 2017-11-04, 8th Dan, STU4716
+Master Smith, London, Brown Brown, 2021-01-07, 6th Dan, STU4116
+Mr. Smith, Tokyo, Smith Smith, 2011-06-03, 2th Dan, STU3121
+Master Kim, London, Smith Davis, 2015-05-18, 10th Dan, STU9227
+Mr. Kim, London, Lee Jeong, 2019-06-21, 3th Dan, STU7355
+Mr. Davis, Mumbai, Park Johnson, 2015-02-09, 2th Dan, STU9481
+Mr. Kim, Busan, Brown Brown, 2012-02-28, 7th Dan, STU5366
+Ms. Johnson, Busan, Lee Brown, 2016-01-25, 2th Dan, STU3959
+Mr. Davis, Tokyo, Johnson Davis, 2007-05-20, 4th Dan, STU4521
+Master Kim, Tokyo, Davis Brown, 2013-04-28, 5th Dan, STU6761
+Mr. Smith, New York, Choi Brown, 2018-05-14, 10th Dan, STU8638
+Master Kim, Los Angeles, Park Park, 2010-06-17, 5th Dan, STU6424
+Mrs. Lee, Mumbai, Jeong Kim, 2022-12-06, 1th Dan, STU8636
+Mrs. Brown, Beijing, Williams Brown, 2009-02-26, 10th Dan, STU3005
+Grand Master Park, Los Angeles, Choi Johnson, 2017-05-20, 4th Dan, STU8502
+Mrs. Brown, Seoul, Johnson Choi, 2004-08-17, 9th Dan, STU6892
+Mrs. Brown, Mumbai, Johnson Smith, 2000-06-04, 9th Dan, STU1954
+Master Smith, Tokyo, Johnson Choi, 2002-01-16, 1th Dan, STU6603
+Mrs. Choi, Tokyo, Jeong Kim, 2002-02-04, 6th Dan, STU3861
+Mrs. Williams, Mumbai, Choi Johnson, 2011-09-22, 10th Dan, STU3362
+Mrs. Williams, Los Angeles, Choi Williams, 2015-08-25, 8th Dan, STU1400
+Mrs. Lee, Busan, Davis Smith, 2022-09-16, 9th Dan, STU6834
+Mr. Johnson, Incheon, Johnson Smith, 2006-06-28, 5th Dan, STU2096
+Ms. Johnson, Sydney, Park Park, 2017-04-14, 3th Dan, STU9832
+Mr. Davis, Busan, Smith Smith, 2008-12-01, 7th Dan, STU2171
+Grand Master Brown, Incheon, Kim Brown, 2002-04-17, 5th Dan, STU6314
+Grand Master Park, Mumbai, Kim Jeong, 2004-09-03, 3th Dan, STU9083
+Master Kim, Sydney, Davis Johnson, 2002-11-05, 1th Dan, STU6465
+Grand Master Lee, Incheon, Jeong Johnson, 2019-11-05, 8th Dan, STU2763
+Mrs. Williams, Busan, Jeong Smith, 2001-07-15, 7th Dan, STU2145
+Ms. Johnson, Los Angeles, Kim Smith, 2017-12-20, 4th Dan, STU7568
+Master Smith, New York, Johnson Jeong, 2013-02-20, 5th Dan, STU8580
+Mrs. Lee, Seoul, Smith Smith, 2018-02-09, 2th Dan, STU2456
+Master Lee, Incheon, Lee Lee, 2017-04-14, 3th Dan, STU7185
+Grand Master Brown, London, Jeong Williams, 2023-07-19, 2th Dan, STU8332
+Mrs. Lee, Beijing, Johnson Williams, 2012-05-16, 8th Dan, STU4500
+Mrs. Williams, Beijing, Kim Lee, 2002-02-20, 4th Dan, STU2066
+Mr. Davis, New York, Lee Davis, 2009-03-16, 9th Dan, STU6170
+Mr. Davis, Seoul, Lee Kim, 2004-10-22, 2th Dan, STU9578
+Grand Master Brown, Incheon, Brown Lee, 2023-06-03, 8th Dan, STU7344
+Mrs. Williams, Busan, Johnson Johnson, 2006-10-11, 1th Dan, STU2002
+Grand Master Lee, Mumbai, Jeong Choi, 2018-12-01, 1th Dan, STU6967
+Mr. Smith, Tokyo, Choi Williams, 2022-08-02, 2th Dan, STU5547
+Master Smith, Beijing, Choi Johnson, 2013-07-09, 9th Dan, STU3293
+Grand Master Park, Los Angeles, Park Jeong, 2019-04-28, 2th Dan, STU8789
+Mr. Johnson, Incheon, Brown Brown, 2003-12-05, 7th Dan, STU3677
+Grand Master Brown, Busan, Johnson Park, 2019-01-14, 7th Dan, STU5093
+Grand Master Lee, Tokyo, Jeong Brown, 2013-07-24, 8th Dan, STU3971
+Mrs. Williams, Los Angeles, Johnson Brown, 2007-10-01, 8th Dan, STU8073
+Master Smith, Tokyo, Jeong Choi, 2017-07-02, 8th Dan, STU8812
+Mrs. Lee, Los Angeles, Kim Williams, 2016-11-26, 1th Dan, STU4656
+Master Kim, Incheon, Jeong Johnson, 2023-02-08, 8th Dan, STU9180
+Mr. Davis, London, Kim Park, 2000-10-06, 5th Dan, STU6839
+Grand Master Lee, New York, Kim Davis, 2014-05-15, 4th Dan, STU4057
+Mr. Davis, Busan, Park Lee, 2019-10-28, 5th Dan, STU1541
+Mr. Johnson, Los Angeles, Kim Johnson, 2023-03-25, 1th Dan, STU5907
+Master Smith, Tokyo, Choi Lee, 2004-08-10, 10th Dan, STU4812
+Ms. Brown, Busan, Jeong Choi, 2005-10-02, 7th Dan, STU5644
+Master Smith, New York, Park Williams, 2019-04-11, 1th Dan, STU3270
+Mr. Davis, New York, Jeong Johnson, 2010-03-23, 5th Dan, STU3941
+Mrs. Lee, Mumbai, Choi Choi, 2017-12-25, 7th Dan, STU5783
+Mrs. Choi, Los Angeles, Williams Jeong, 2014-02-10, 3th Dan, STU6546
+Grand Master Park, Busan, Johnson Lee, 2011-06-24, 7th Dan, STU4070
+Grand Master Park, New York, Johnson Park, 2019-04-15, 5th Dan, STU9701
+Grand Master Lee, Seoul, Choi Jeong, 2023-07-25, 7th Dan, STU9611
+Master Smith, Seoul, Park Park, 2016-12-05, 10th Dan, STU4708
+Ms. Johnson, Incheon, Lee Lee, 2000-08-02, 8th Dan, STU8823
+Mr. Smith, Busan, Kim Johnson, 2012-05-22, 9th Dan, STU3384
