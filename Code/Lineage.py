@@ -418,7 +418,7 @@ def main():
     output_dir = config.get("output_dir", os.getcwd())
     log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
-    license_file = config.get("license_file", os.path.join(os.path.dirname(os.getcwd()), "LICENSE"))
+    license_file = config.get("license_file", "license.txt")
 
     ensure_directory_exists(output_dir)
 
