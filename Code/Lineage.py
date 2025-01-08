@@ -5,7 +5,7 @@ from datetime import datetime
 
 def reformat_name(name: str) -> str:
     """
-    Formats a name into 'Title Last Name, First Middle' format.
+    Formats a name into 'Title First Middle Last' format.
     Handles titles and ensures proper name structure.
 
     Args:
@@ -21,27 +21,24 @@ def reformat_name(name: str) -> str:
     name_parts = name.split()
     valid_titles = {"Grand Master", "Master", "Mr.", "Ms.", "Mrs."}
 
-    if len(name_parts) < 2:
-        return name  # Single-word names
-
-    if " ".join(name_parts[:2]) in valid_titles:
-        title = " ".join(name_parts[:2])
+    # Handle multi-word and single-word titles
+    if len(name_parts) > 1 and " ".join(name_parts[:2]) in valid_titles:
+        title = " ".join(name_parts[:2])  # Multi-word title
         rest = name_parts[2:]
     elif name_parts[0] in valid_titles:
-        title = name_parts[0]
+        title = name_parts[0]  # Single-word title
         rest = name_parts[1:]
     else:
         title = ""
         rest = name_parts
 
-    if rest and "," in rest[0]:
+    if rest:
+        # Preserve the rest of the name in correct order
         return f"{title} {' '.join(rest)}".strip()
-    elif rest:
-        last_name = rest[-1]
-        first_middle = " ".join(rest[:-1])
-        return f"{title} {last_name}, {first_middle}".strip()
     else:
+        # Only a title with no additional name parts
         return title.strip()
+
 
 def format_student_name(name: str, format_type: str = "last_first") -> str:
     """
@@ -221,7 +218,9 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
 
     for filename in os.listdir(bio_dir):
         if filename.endswith(".txt"):
-            teacher_name = os.path.splitext(filename)[0]
+            # Normalize the teacher's name by replacing underscores with spaces
+            teacher_name = os.path.splitext(filename)[0].replace("_", " ")
+            teacher_name = reformat_name(teacher_name)  # Ensure consistent formatting
             bio_path = os.path.join(bio_dir, filename)
             try:
                 with open(bio_path, "r") as bio_file:
@@ -233,14 +232,11 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
                             bio_data["student_of"] = line.replace("Student of:", "").strip() or "Unknown"
                         elif line.startswith("Nationality:"):
                             bio_data["nationality"] = line.replace("Nationality:", "").strip() or "Unknown"
-                        else:
-                            log_message(f"Unrecognized line in {filename}: {line.strip()}", log_file, error_code="DATA_WARNING")
-                    bios[reformat_name(teacher_name)] = bio_data
-            except FileNotFoundError:
-                log_message(f"Bio file not found: {bio_path}", log_file, error_code="FILE_NOT_FOUND")
+                    bios[teacher_name] = bio_data
             except Exception as e:
                 log_message(f"Error reading bio file {bio_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
     return bios
+
 
 def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
     """
@@ -262,26 +258,33 @@ def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
             with open(file_path, "r") as file:
                 for line in file:
                     parts = [x.strip() for x in line.split(",")]
-                    if len(parts) < 5:
+                    if len(parts) < 6:
                         log_message(f"Skipping malformed line in {filename}: {line.strip()}", log_file, error_code="DATA_ERROR")
                         continue
 
-                    teacher = reformat_name(parts[0]) or "Unknown Teacher"
+                    # Normalize teacher's name
+                    teacher = reformat_name(parts[0])
                     address = parts[1] or "Unknown Address"
                     student = parts[2] or "Unknown Student"
                     date = parse_date(parts[3])
                     ranking = parts[4] or "Unknown Ranking"
                     number = parts[5] if len(parts) > 5 else "N/A"
 
+                    # Ensure the teacher's name exists in the lineage dictionary
                     if teacher not in lineage:
                         lineage[teacher] = {}
+
+                    # Add the address as a key if it doesn't exist
                     if address not in lineage[teacher]:
                         lineage[teacher][address] = []
+
+                    # Append the student record to the teacher's address entry
                     lineage[teacher][address].append((student, date, ranking, number))
         except FileNotFoundError:
             log_message(f"File not found: {file_path}", log_file, error_code="FILE_NOT_FOUND")
         except Exception as e:
             log_message(f"Error processing file {file_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
+
 
 def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intro_dir: str, license_file: str) -> None:
     """
@@ -297,7 +300,11 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
     """
     def escape_latex_special_characters(text: str) -> str:
         """Escapes special LaTeX characters in text."""
-        special_chars = {'&': '\\&', '%': '\\%', '$': '\\$', '#': '\\#', '_': '\\_', '{': '\\{', '}': '\\}', '~': '\\textasciitilde{}', '^': '\\textasciicircum{}', '\\': '\\textbackslash{}'}
+        special_chars = {
+            '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#',
+            '_': r'\_', '{': r'\{', '}': r'\}', '~': r'\textasciitilde{}',
+            '^': r'\textasciicircum{}', '\\': r'\textbackslash{}'
+        }
         for char, escape in special_chars.items():
             text = text.replace(char, escape)
         return text
@@ -305,19 +312,19 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
     try:
         with open(tex_file, "w") as file:
             # LaTeX document preamble
-            file.write("\\documentclass[oneside]{book}\n")
-            file.write("\\usepackage[utf8]{inputenc}\n")
-            file.write("\\usepackage{longtable}\n")
-            file.write("\\usepackage{hyperref}\n")
-            file.write("\\title{Lineage of Grand Master Chong Woong Kim}\n")
-            file.write("\\author{Compiled Lineage Working Group}\n")
-            file.write("\\date{\\today}\n")
-            file.write("\\begin{document}\n")
-            file.write("\\maketitle\n")
+            file.write(r"\documentclass[oneside]{book}" + "\n")
+            file.write(r"\usepackage[utf8]{inputenc}" + "\n")
+            file.write(r"\usepackage{longtable}" + "\n")
+            file.write(r"\usepackage{hyperref}" + "\n")
+            file.write(r"\title{Lineage of Grand Master Chong Woong Kim}" + "\n")
+            file.write(r"\author{Compiled Lineage Working Group}" + "\n")
+            file.write(r"\date{\today}" + "\n")
+            file.write(r"\begin{document}" + "\n")
+            file.write(r"\maketitle" + "\n")
 
             # License Page
-            file.write("\\clearpage\n")
-            file.write("\\chapter*{Copyright and License}\n")
+            file.write(r"\clearpage" + "\n")
+            file.write(r"\chapter*{Copyright and License}" + "\n")
             if os.path.exists(license_file):
                 with open(license_file, "r") as license_f:
                     license_text = license_f.read()
@@ -327,22 +334,22 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                 file.write("License information is unavailable.\n")
 
             # Table of Contents
-            file.write("\\tableofcontents\n")
-            file.write("\\clearpage\n")
+            file.write(r"\tableofcontents" + "\n")
+            file.write(r"\clearpage" + "\n")
 
             # Introduction Section
             intro_file = os.path.join(intro_dir, "intro.txt")
             if os.path.exists(intro_file):
                 with open(intro_file, "r") as intro_f:
                     intro_content = intro_f.read()
-                file.write("\\chapter*{Introduction}\n")
+                file.write(r"\chapter*{Introduction}" + "\n")
                 file.write(escape_latex_special_characters(intro_content) + "\n")
             else:
                 log_message(f"Introduction file not found: {intro_file}", log_file, error_code="MISSING_INTRO")
-                file.write("\\chapter*{Introduction}\n")
+                file.write(r"\chapter*{Introduction}" + "\n")
                 file.write("Introduction content is unavailable.\n")
 
-            # Main Content and Index Collection
+            # Main Content
             names_with_pages = defaultdict(set)
             for teacher, locations in lineage.items():
                 formatted_teacher = escape_latex_special_characters(format_teacher_name(teacher, "title_first_last"))
@@ -350,40 +357,43 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
                 file.write(f"\\chapter{{{formatted_teacher}}}\n")
                 file.write(f"\\label{{{label_teacher}}}\n")
                 names_with_pages[formatted_teacher].add(label_teacher)
+
+                # Write Bio Paragraph
                 bio = bios.get(teacher, {})
                 if bio:
                     bio_paragraph = generate_bio_paragraph(formatted_teacher, bio)
-                    file.write(escape_latex_special_characters(bio_paragraph) + "\\\n")
+                    file.write(escape_latex_special_characters(bio_paragraph) + "\n\n")
                 else:
                     log_message(f"Bio not found for teacher: {teacher}", log_file, error_code="MISSING_BIO")
-                    file.write("Bio information is unavailable.\\\n")
+                    file.write("Bio information is unavailable.\n\n")
 
+                # Write Students
                 for address, students in locations.items():
                     file.write(f"\\section*{{{escape_latex_special_characters(address)}}}\n")
-                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
-                    file.write("\\hline\n")
-                    file.write("\\textbf{No.} & \\textbf{Student Name} & \\textbf{Date} & \\textbf{Ranking} & \\textbf{Number} \\\\\\\\ \\hline\n")
+                    file.write(r"\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}" + "\n")
+                    file.write(r"\hline" + "\n")
+                    file.write(r"\textbf{No.} & \textbf{Student Name} & \textbf{Date} & \textbf{Ranking} & \textbf{Number} \\ \hline" + "\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
                         formatted_student = escape_latex_special_characters(format_student_name(student, "last_first"))
                         label_student = f"{label_teacher}_{formatted_student.replace(' ', '_')}"
-                        file.write(f"\\label{{{label_student}}}\n")
                         names_with_pages[formatted_student].add(label_student)
-                        file.write(f"{idx} & {formatted_student} & {escape_latex_special_characters(date)} & {escape_latex_special_characters(ranking)} & {escape_latex_special_characters(number)} \\\\\\\\ \\hline\n")
+                        file.write(f"{idx} & {formatted_student} & {escape_latex_special_characters(date)} & {escape_latex_special_characters(ranking)} & {escape_latex_special_characters(number)} \\\\ \\hline\n")
 
-                    file.write("\\end{longtable}\n")
+                    file.write(r"\end{longtable}" + "\n")
 
             # Generate Index
-            file.write("\\chapter{Index}\n")
-            file.write("\\begin{longtable}{|p{6cm}|p{8cm}|}\n")
-            file.write("\\hline\n")
-            file.write("\\textbf{Name} & \\textbf{Page Numbers} \\\\\\\\ \\hline\n")
+            file.write(r"\chapter{Index}" + "\n")
+            file.write(r"\begin{longtable}{|p{6cm}|p{8cm}|}" + "\n")
+            file.write(r"\hline" + "\n")
+            file.write(r"\textbf{Name} & \textbf{Page Numbers} \\ \hline" + "\n")
             for name, labels in sorted(names_with_pages.items()):
                 pages_str = ", ".join([f"\\pageref{{{label}}}" for label in sorted(labels)])
-                file.write(f"{escape_latex_special_characters(name)} & {pages_str} \\\\\\\\ \\hline\n")
-            file.write("\\end{longtable}\n")
+                file.write(f"{escape_latex_special_characters(name)} & {pages_str} \\\\ \\hline\n")
+            file.write(r"\end{longtable}" + "\n")
 
-            file.write("\\end{document}\n")
+            # End Document
+            file.write(r"\end{document}" + "\n")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
 
