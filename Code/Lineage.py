@@ -297,43 +297,26 @@ def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
         log_message(f"Error processing directory {raw_data_dir}: {e}", log_file, error_code="UNKNOWN_ERROR")
 
 
-
 def parse_line_with_defaults(line, log_file):
-    """
-    Parses a single line from the standardized student list, handling missing fields.
-
-    Args:
-        line (str): The raw line from the file.
-        log_file (str): Path to the log file for logging errors.
-
-    Returns:
-        dict: A dictionary containing parsed fields, with defaults for missing values.
-    """
+    """Parses a single line from the standardized student list, handling missing fields."""
     try:
         parts = [x.strip() for x in line.split("|")]
         if len(parts) != 6:
             log_message(f"Malformed line: {line.strip()}", log_file, error_code="DATA_ERROR")
             return None
 
-        # Assign parts with default values for missing fields
-        teacher = parts[0] or "Unknown Teacher"
-        address = parts[1] or "Unknown Address"
-        student = parts[2] or "Unknown Student"
-        date = parts[3] or "Unknown Date"
-        ranking = parts[4] or "Unknown Ranking"
-        number = parts[5] or "N/A"
-
         return {
-            "teacher": teacher,
-            "address": address,
-            "student": student,
-            "date": date,
-            "ranking": ranking,
-            "number": number,
+            "teacher": parts[0] or "Unknown Teacher",
+            "address": parts[1] or "Unknown Address",
+            "student": parts[2] or "Unknown Student",
+            "date": parts[3] or "Unknown Date",
+            "ranking": parts[4] or "Unknown Ranking",
+            "number": parts[5] or "N/A",
         }
     except Exception as e:
         log_message(f"Error parsing line: {line.strip()} - {e}", log_file, error_code="PARSE_ERROR")
         return None
+
 
 
 def generate_latex(lineage, bios, tex_file, log_file):
@@ -430,10 +413,15 @@ def generate_latex(lineage, bios, tex_file, log_file):
                 if teacher == "Grand Master Chong Woong Kim":
                     file.write(escape_latex_special_characters(hardcoded_bio) + "\n\n")
                 else:
-                    # Format and write bio
+                    # Format and write bio in paragraph form
                     bio_data = bios.get(teacher, {})
-                    formatted_bio = escape_latex_special_characters(bio_data)
-                    file.write(f"{formatted_bio}\n\n")
+                    formatted_bio = (
+                        f"{teacher_str} is a martial artist from {bio_data.get('hometown', 'Unknown')}. "
+                        f"They are a student of {bio_data.get('student_of', 'Unknown')} and "
+                        f"are of {bio_data.get('nationality', 'Unknown')} nationality."
+                    )
+                    escaped_bio = escape_latex_special_characters(formatted_bio)
+                    file.write(f"{escaped_bio}\n\n")
 
                 for address, students in locations.items():
                     address_str = escape_latex_special_characters(str(address))
@@ -461,6 +449,7 @@ def generate_latex(lineage, bios, tex_file, log_file):
             print("LaTeX document generation completed successfully.")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
+
 
 
 
