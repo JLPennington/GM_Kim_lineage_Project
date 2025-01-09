@@ -76,9 +76,9 @@ def create_teacher_file(title, first_name, middle_name, last_name, hometown, men
     """
     filename = f"{OUTPUT_DIR}/{title}_{first_name}_{middle_name}_{last_name}.txt"
     with open(filename, "w") as f:
-        f.write(f"Hometown: {hometown}\n")
-        f.write(f"Student of: {mentor}\n")
-        f.write(f"Nationality: {nationality}\n")
+        f.write(f"Hometown: {capitalize_field(hometown)}\n")
+        f.write(f"Student of: {capitalize_field(mentor)}\n")
+        f.write(f"Nationality: {capitalize_field(nationality)}\n")
     logging.info(f"Teacher file created: {filename}")
     return filename
 
@@ -93,6 +93,17 @@ def create_student_file(records):
     logging.info(f"Student file created: {filename}")
     return filename
 
+def get_input(prompt):
+    """
+    Get user input with the option to exit anytime by typing "exit".
+    """
+    value = input(prompt)
+    if value.lower() == "exit":
+        print("Exiting...")
+        logging.info("User exited the script.")
+        exit(0)  # Terminate the script
+    return value
+
 def prompt_teacher_details():
     """
     Prompt the user interactively to provide teacher details for creating a Teacher Format file.
@@ -102,19 +113,19 @@ def prompt_teacher_details():
     
     # Validate title
     while True:
-        title = input("Title (Grand Master, Master, Mr., Ms., Mrs.): ")
+        title = get_input("Title (Grand Master, Master, Mr., Ms., Mrs.): ").title()
         if title in ALLOWED_TITLES:
             break
         else:
             print(f"Invalid title. Allowed titles are: {', '.join(ALLOWED_TITLES)}")
             logging.warning(f"Invalid title entered: {title}")
     
-    first_name = input("First Name: ")
-    middle_name = input("Middle Name: ")
-    last_name = input("Last Name: ")
-    hometown = input("Hometown (City, State): ")
-    mentor = input("Mentor's Name: ")
-    nationality = input("Nationality: ")
+    first_name = get_input("First Name: ").title()
+    middle_name = get_input("Middle Name: ").title()
+    last_name = get_input("Last Name: ").title()
+    hometown = get_input("Hometown (City, State): ")
+    mentor = get_input("Mentor's Name: ")
+    nationality = get_input("Nationality: ")
     return title, first_name, middle_name, last_name, hometown, mentor, nationality
 
 def generate_random_data(num_teachers=5, num_students=20):
@@ -153,18 +164,6 @@ def generate_random_data(num_teachers=5, num_students=20):
     logging.info(f"Generated {len(teacher_files)} teacher files and 1 student file: {student_file}")
     return teacher_files, student_file
 
-def display_summary(teacher_files, student_file):
-    """
-    Display a summary of the processed or generated data.
-    """
-    print("\nProcessing Summary:")
-    print(f"- Teacher Records Created: {len(teacher_files)}")
-    print(f"- Student File: {student_file}")
-    print("- Warnings and Errors: Check tool.log for details.")
-    logging.info("Summary displayed to the user.")
-
-# Main CLI
-
 def main():
     """
     Command Line Interface for processing teacher and student data.
@@ -177,19 +176,15 @@ def main():
         print("3. Generate Random Test Data")
         print("4. Exit")
         
-        choice = input("Enter your choice: ")
+        choice = get_input("Enter your choice: ")
         if choice == "1":
             # Process student data from an Excel file
-            excel_file = input("Enter the path to the Excel file: ")
+            excel_file = get_input("Enter the path to the Excel file: ")
             try:
                 df = pd.read_excel(excel_file)
-
-                # Validate required fields
                 for field in ["Teacher Name", "Student Name", "Date", "Rank"]:
                     if df[field].isnull().any() or (df[field] == "").any():
                         raise ValueError(f"Missing critical data in field: {field}")
-
-                # Process valid data into Student Format
                 records = [
                     (
                         capitalize_field(row["Teacher Name"]),
@@ -213,13 +208,13 @@ def main():
             print(f"Teacher record created and saved to {filename}")
         elif choice == "3":
             # Generate random test data
-            num_teachers = int(input("Enter the number of teachers to generate: "))
-            num_students = int(input("Enter the number of students to generate: "))
+            num_teachers = int(get_input("Enter the number of teachers to generate: "))
+            num_students = int(get_input("Enter the number of students to generate: "))
             teacher_files, student_file = generate_random_data(num_teachers, num_students)
-            display_summary(teacher_files, student_file)
+            print(f"Generated {len(teacher_files)} teacher files and 1 student file: {student_file}")
         elif choice == "4":
-            # Exit the program
             print("Exiting...")
+            logging.info("User exited the script.")
             break
         else:
             print("Invalid choice. Please try again.")
