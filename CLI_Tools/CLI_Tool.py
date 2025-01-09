@@ -14,7 +14,9 @@ logging.basicConfig(
 
 # Constants
 OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure the output directory exists
+EXCEL_DIR = "excel_files"
+os.makedirs(OUTPUT_DIR, exist_ok=True)  # Ensure output directory exists
+os.makedirs(EXCEL_DIR, exist_ok=True)  # Ensure Excel directory exists
 
 # Allowed titles for teachers
 ALLOWED_TITLES = ["Grand Master", "Master", "Mr.", "Ms.", "Mrs."]
@@ -41,6 +43,14 @@ ADDRESS_ABBREVIATIONS = {
     "Hwy": "Highway",
 }
 
+# Random data pools for names and addresses
+FIRST_NAMES = ["John", "Jane", "Alex", "Emily", "Chris", "Jordan", "Taylor", "Morgan"]
+MIDDLE_NAMES = ["A.", "B.", "C.", "D.", "E.", "F.", "G.", "H."]
+LAST_NAMES = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Davis", "Garcia", "Martinez"]
+CITIES = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio"]
+STATES = ["NY", "CA", "IL", "TX", "AZ", "PA", "FL", "OH", "GA", "NC"]
+STREET_NAMES = ["Main", "Oak", "Pine", "Maple", "Cedar", "Elm", "Washington", "Lincoln"]
+
 # Helper Functions
 
 def capitalize_field(value):
@@ -62,13 +72,25 @@ def replace_address_abbreviations(address):
         address = address.replace(abbr, full)
     return address
 
-def validate_date(date_str):
+def generate_random_address():
     """
-    Validates that a date string is in YYYY-MM-DD format.
+    Generates a random U.S. address with a street number, street name, city, state, and zip code.
     """
-    if not re.match(r"\d{4}-\d{2}-\d{2}", date_str):
-        raise ValueError(f"Invalid date format: {date_str}. Expected YYYY-MM-DD.")
-    return date_str
+    street_number = random.randint(100, 9999)
+    street_name = f"{random.choice(STREET_NAMES)} {random.choice(['St.', 'Ave.', 'Rd.', 'Blvd.', 'Dr.', 'Ln.'])}"
+    city = random.choice(CITIES)
+    state = random.choice(STATES)
+    zip_code = f"{random.randint(10000, 99999)}"
+    address = f"{street_number} {replace_address_abbreviations(street_name)}, {city}, {state} {zip_code}"
+    return address
+
+def generate_random_city_state():
+    """
+    Generates a random city and state for use in teacher records.
+    """
+    city = random.choice(CITIES)
+    state = random.choice(STATES)
+    return f"{city}, {state}"
 
 def create_teacher_file(title, first_name, middle_name, last_name, hometown, mentor, nationality):
     """
@@ -93,6 +115,79 @@ def create_student_file(records):
     logging.info(f"Student file created: {filename}")
     return filename
 
+def list_excel_files(directory):
+    """
+    Lists all Excel files in the specified directory.
+    """
+    files = [f for f in os.listdir(directory) if f.endswith(".xlsx")]
+    if not files:
+        print(f"No Excel files found in directory: {directory}")
+        logging.info(f"No Excel files found in directory: {directory}")
+        return []
+    print(f"Excel files available in {directory}:")
+    for i, file in enumerate(files, 1):
+        print(f"{i}. {file}")
+    return files
+
+def process_all_excel_files(directory):
+    """
+    Processes all Excel files in the specified directory.
+    After processing, prompts the user to delete the files.
+    """
+    files = list_excel_files(directory)
+    if not files:
+        return  # No files to process
+
+    processed_files = []  # Keep track of successfully processed files
+
+    for file_name in files:
+        file_path = os.path.join(directory, file_name)
+        try:
+            df = pd.read_excel(file_path)
+
+            # Validate required fields
+            required_fields = ["Teacher Name", "Address", "Student Name", "Date", "Rank", "Number"]
+            for field in required_fields:
+                if field not in df.columns:
+                    raise ValueError(f"Missing required column: {field}")
+                if df[field].isnull().any() or (df[field] == "").any():
+                    raise ValueError(f"Missing data in column: {field}")
+
+            # Process the data into "Student Format"
+            records = [
+                (
+                    capitalize_field(row["Teacher Name"]),
+                    replace_address_abbreviations(row["Address"]),
+                    capitalize_field(row["Student Name"]),
+                    str(row["Date"]),
+                    capitalize_field(row["Rank"]),
+                    str(row["Number"])
+                )
+                for _, row in df.iterrows()
+            ]
+
+            # Save the processed records to a file
+            filename = create_student_file(records)
+            print(f"Processed {file_name} and saved to {filename}")
+            logging.info(f"Processed {file_name} and saved to {filename}")
+            processed_files.append(file_path)
+
+        except Exception as e:
+            print(f"Error processing file {file_name}: {e}")
+            logging.error(f"Error processing file {file_name}: {e}")
+
+    # Prompt to delete processed files
+    if processed_files:
+        delete_prompt = get_input("Do you want to delete the processed Excel files? (yes/no): ").lower()
+        if delete_prompt == "yes":
+            for file_path in processed_files:
+                os.remove(file_path)
+                print(f"Deleted {file_path}")
+                logging.info(f"Deleted {file_path}")
+        else:
+            print("Processed files were not deleted.")
+            logging.info("Processed files were not deleted.")
+
 def get_input(prompt):
     """
     Get user input with the option to exit anytime by typing "exit".
@@ -101,32 +196,8 @@ def get_input(prompt):
     if value.lower() == "exit":
         print("Exiting...")
         logging.info("User exited the script.")
-        exit(0)  # Terminate the script
+        exit(0)  # Terminate the script immediately
     return value
-
-def prompt_teacher_details():
-    """
-    Prompt the user interactively to provide teacher details for creating a Teacher Format file.
-    Validates the title against the allowed list.
-    """
-    print("\nEnter teacher details:")
-    
-    # Validate title
-    while True:
-        title = get_input("Title (Grand Master, Master, Mr., Ms., Mrs.): ").title()
-        if title in ALLOWED_TITLES:
-            break
-        else:
-            print(f"Invalid title. Allowed titles are: {', '.join(ALLOWED_TITLES)}")
-            logging.warning(f"Invalid title entered: {title}")
-    
-    first_name = get_input("First Name: ").title()
-    middle_name = get_input("Middle Name: ").title()
-    last_name = get_input("Last Name: ").title()
-    hometown = get_input("Hometown (City, State): ")
-    mentor = get_input("Mentor's Name: ")
-    nationality = get_input("Nationality: ")
-    return title, first_name, middle_name, last_name, hometown, mentor, nationality
 
 def generate_random_data(num_teachers=5, num_students=20):
     """
@@ -139,11 +210,11 @@ def generate_random_data(num_teachers=5, num_students=20):
     # Generate random teacher records
     for _ in range(num_teachers):
         title = random.choice(ALLOWED_TITLES[:2])  # Use only "Grand Master" and "Master" for test data
-        first_name = random.choice(["John", "Jane", "Alex", "Emily"])
-        middle_name = random.choice(["A", "B", "C", "D"])
-        last_name = random.choice(["Smith", "Doe", "Brown", "Johnson"])
-        hometown = f"{random.choice(['Ironton', 'Columbus', 'Austin'])}, {random.choice(['Ohio', 'Texas'])}"
-        mentor = random.choice(["Master Kim", "Master Lee", "Master Park"])
+        first_name = random.choice(FIRST_NAMES)
+        middle_name = random.choice(MIDDLE_NAMES)
+        last_name = random.choice(LAST_NAMES)
+        hometown = generate_random_city_state()  # Use city and state only for teachers
+        mentor = random.choice(["Grand Master Kim", "Grand Master Lee", "Grand Master Park"])
         nationality = random.choice(["American", "Korean", "Canadian"])
         teachers.append((title, first_name, middle_name, last_name, hometown, mentor, nationality))
     
@@ -151,8 +222,8 @@ def generate_random_data(num_teachers=5, num_students=20):
     for _ in range(num_students):
         teacher = random.choice(teachers)
         teacher_name = f"{teacher[0]} {teacher[1]} {teacher[2]} {teacher[3]}"
-        address = replace_address_abbreviations(teacher[4])
-        student_name = random.choice(["Chris", "Pat", "Jordan", "Taylor"])
+        address = generate_random_address()  # Full address for students
+        student_name = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
         date = datetime.datetime.now().strftime('%Y-%m-%d')
         rank = random.choice(["White", "Yellow", "Black"])
         number = str(random.randint(1, 100))
@@ -176,38 +247,13 @@ def main():
         print("3. Generate Random Test Data")
         print("4. Exit")
         
-        choice = get_input("Enter your choice: ")
+        choice = get_input("Enter your choice: ").lower()
         if choice == "1":
-            # Process student data from an Excel file
-            excel_file = get_input("Enter the path to the Excel file: ")
-            try:
-                df = pd.read_excel(excel_file)
-                for field in ["Teacher Name", "Student Name", "Date", "Rank"]:
-                    if df[field].isnull().any() or (df[field] == "").any():
-                        raise ValueError(f"Missing critical data in field: {field}")
-                records = [
-                    (
-                        capitalize_field(row["Teacher Name"]),
-                        replace_address_abbreviations(row["Address"]) if row["Address"] else "Unknown Address",
-                        capitalize_field(row["Student Name"]),
-                        validate_date(row["Date"]),
-                        capitalize_field(row["Rank"]),
-                        str(row["Number"]) if pd.notna(row["Number"]) else "0"
-                    )
-                    for _, row in df.iterrows()
-                ]
-                filename = create_student_file(records)
-                print(f"Student data processed and saved to {filename}")
-            except Exception as e:
-                print(f"Error: {e}")
-                logging.error(f"Error processing Excel file: {e}")
+            print(f"Excel files must be located in the directory: {EXCEL_DIR}")
+            process_all_excel_files(EXCEL_DIR)
         elif choice == "2":
-            # Create a teacher record interactively
-            teacher_details = prompt_teacher_details()
-            filename = create_teacher_file(*teacher_details)
-            print(f"Teacher record created and saved to {filename}")
+            print("Feature under development.")
         elif choice == "3":
-            # Generate random test data
             num_teachers = int(get_input("Enter the number of teachers to generate: "))
             num_students = int(get_input("Enter the number of students to generate: "))
             teacher_files, student_file = generate_random_data(num_teachers, num_students)
@@ -218,6 +264,7 @@ def main():
             break
         else:
             print("Invalid choice. Please try again.")
+
 
 if __name__ == "__main__":
     main()
