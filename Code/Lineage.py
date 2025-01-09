@@ -238,68 +238,120 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
     return bios
 
 
-def parse_raw_data(raw_data_dir: str, lineage: dict, log_file: str) -> None:
+import os
+import json
+
+def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
     """
-    Parses raw data files to populate a lineage dictionary.
+    Parses raw data files from a directory and populates a lineage dictionary.
 
     Args:
         raw_data_dir (str): Path to the directory containing raw data files.
         lineage (dict): Dictionary to store lineage information.
         log_file (str): Path to the log file.
     """
-    if not validate_directory(raw_data_dir):
+    # Ensure the provided path is a directory
+    if not os.path.isdir(raw_data_dir):
+        log_message(f"Provided path is not a directory: {raw_data_dir}", log_file, error_code="INVALID_PATH")
         return
 
-    for filename in os.listdir(raw_data_dir):
-        file_path = os.path.join(raw_data_dir, filename)
-        if not filename.endswith(".txt"):
-            continue
-        try:
+    try:
+        for filename in os.listdir(raw_data_dir):
+            # Skip non-text files
+            if not filename.endswith(".txt"):
+                continue
+
+            file_path = os.path.join(raw_data_dir, filename)
+            print(f"Processing file: {file_path}")  # Debugging: Show which file is being processed
+
             with open(file_path, "r") as file:
                 for line in file:
-                    parts = [x.strip() for x in line.split(",")]
-                    if len(parts) < 6:
-                        log_message(f"Skipping malformed line in {filename}: {line.strip()}", log_file, error_code="DATA_ERROR")
+                    parsed = parse_line_with_defaults(line, log_file)
+                    if not parsed:
                         continue
 
-                    # Normalize teacher's name
-                    teacher = reformat_name(parts[0])
-                    address = parts[1] or "Unknown Address"
-                    student = parts[2] or "Unknown Student"
-                    date = parse_date(parts[3])
-                    ranking = parts[4] or "Unknown Ranking"
-                    number = parts[5] if len(parts) > 5 else "N/A"
+                    teacher = reformat_name(parsed["teacher"])
+                    address = parsed["address"]
+                    student = parsed["student"]
+                    date = parsed["date"]
+                    ranking = parsed["ranking"]
+                    number = parsed["number"]
 
-                    # Ensure the teacher's name exists in the lineage dictionary
+                    # Ensure teacher exists in lineage
                     if teacher not in lineage:
                         lineage[teacher] = {}
 
-                    # Add the address as a key if it doesn't exist
+                    # Ensure address exists under teacher
                     if address not in lineage[teacher]:
                         lineage[teacher][address] = []
 
-                    # Append the student record to the teacher's address entry
+                    # Add student data to the teacher's address entry
                     lineage[teacher][address].append((student, date, ranking, number))
-        except FileNotFoundError:
-            log_message(f"File not found: {file_path}", log_file, error_code="FILE_NOT_FOUND")
-        except Exception as e:
-            log_message(f"Error processing file {file_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
+
+        # Debugging: Print lineage data
+        print("Lineage Data after Parsing:")
+        print(json.dumps(lineage, indent=2))
+        if not lineage:
+            log_message("Lineage data is empty. Verify input data and parsing logic.", log_file, error_code="EMPTY_DATA")
+    except Exception as e:
+        log_message(f"Error processing directory {raw_data_dir}: {e}", log_file, error_code="UNKNOWN_ERROR")
 
 
-def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intro_dir: str, license_file: str) -> None:
+
+def parse_line_with_defaults(line, log_file):
     """
-    Generates a LaTeX document from lineage and bios data.
+    Parses a single line from the standardized student list, handling missing fields.
+
+    Args:
+        line (str): The raw line from the file.
+        log_file (str): Path to the log file for logging errors.
+
+    Returns:
+        dict: A dictionary containing parsed fields, with defaults for missing values.
+    """
+    try:
+        parts = [x.strip() for x in line.split("|")]
+        if len(parts) != 6:
+            log_message(f"Malformed line: {line.strip()}", log_file, error_code="DATA_ERROR")
+            return None
+
+        # Assign parts with default values for missing fields
+        teacher = parts[0] or "Unknown Teacher"
+        address = parts[1] or "Unknown Address"
+        student = parts[2] or "Unknown Student"
+        date = parts[3] or "Unknown Date"
+        ranking = parts[4] or "Unknown Ranking"
+        number = parts[5] or "N/A"
+
+        return {
+            "teacher": teacher,
+            "address": address,
+            "student": student,
+            "date": date,
+            "ranking": ranking,
+            "number": number,
+        }
+    except Exception as e:
+        log_message(f"Error parsing line: {line.strip()} - {e}", log_file, error_code="PARSE_ERROR")
+        return None
+
+
+def generate_latex(lineage, bios, tex_file, log_file):
+    """
+    Generates a LaTeX document with an index for teachers and students.
+    Ensures introduction, license, and first chapter bio are hardcoded.
 
     Args:
         lineage (dict): Lineage data.
         bios (dict): Teacher bios.
         tex_file (str): Path to the output LaTeX file.
         log_file (str): Path to the log file.
-        intro_dir (str): Path to the introduction directory.
-        license_file (str): Path to the license file.
     """
-    def escape_latex_special_characters(text: str) -> str:
+    def escape_latex_special_characters(text):
         """Escapes special LaTeX characters in text."""
+        if not isinstance(text, str):
+            log_message(f"Non-string data encountered: {text}", log_file, error_code="DATA_ERROR")
+            text = str(text)  # Convert non-string to string
         special_chars = {
             '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#',
             '_': r'\_', '{': r'\{', '}': r'\}', '~': r'\textasciitilde{}',
@@ -310,92 +362,107 @@ def generate_latex(lineage: dict, bios: dict, tex_file: str, log_file: str, intr
         return text
 
     try:
+        if not lineage:
+            log_message("Lineage data is empty. Skipping LaTeX generation.", log_file, error_code="EMPTY_DATA")
+            return
+
+        # Hardcoded License
+        hardcoded_license = (
+            "This document is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 "
+            "International License. You are free to share and adapt the material under the following terms: "
+            "give appropriate credit, do not use it for commercial purposes, and distribute your contributions "
+            "under the same license."
+        )
+
+        # Hardcoded Bio for Grand Master Chong Woong Kim
+        hardcoded_bio = (
+            "Grand Master Chong Woong Kim is a distinguished martial artist whose legacy is rooted in his "
+            "dedication to Taekwondo and his profound impact on students worldwide. Born in Seoul, South Korea, "
+            "Grand Master Kim has spent decades sharing his expertise and fostering respect, discipline, and "
+            "excellence in martial arts."
+        )
+
+        # Hardcoded Introduction
+        hardcoded_introduction = (
+            "Welcome to the lineage document of Grand Master Chong Woong Kim. This work seeks to preserve "
+            "and share the profound legacy of a martial artist who has touched countless lives. Through these "
+            "pages, we explore the connections, stories, and achievements of students and teachers who form an "
+            "unbroken chain of knowledge and tradition."
+        )
+
         with open(tex_file, "w") as file:
             # LaTeX document preamble
-            file.write(r"\documentclass[oneside]{book}" + "\n")
-            file.write(r"\usepackage[utf8]{inputenc}" + "\n")
-            file.write(r"\usepackage{longtable}" + "\n")
-            file.write(r"\usepackage{hyperref}" + "\n")
-            file.write(r"\title{Lineage of Grand Master Chong Woong Kim}" + "\n")
-            file.write(r"\author{Compiled Lineage Working Group}" + "\n")
-            file.write(r"\date{\today}" + "\n")
-            file.write(r"\begin{document}" + "\n")
-            file.write(r"\maketitle" + "\n")
+            file.write("\\documentclass[oneside]{book}\n")
+            file.write("\\usepackage[utf8]{inputenc}\n")
+            file.write("\\usepackage{longtable}\n")
+            file.write("\\usepackage{hyperref}\n")
+            file.write("\\usepackage{makeidx}\n")  # Enable index generation
+            file.write("\\makeindex\n")  # Prepare for indexing
+            file.write("\\title{Lineage of Grand Master Chong Woong Kim}\n")
+            file.write("\\author{Compiled Lineage Working Group}\n")
+            file.write("\\date{\\today}\n")
+            file.write("\\begin{document}\n")
+            file.write("\\maketitle\n")
 
-            # License Page
-            file.write(r"\clearpage" + "\n")
-            file.write(r"\chapter*{Copyright and License}" + "\n")
-            if os.path.exists(license_file):
-                with open(license_file, "r") as license_f:
-                    license_text = license_f.read()
-                file.write(escape_latex_special_characters(license_text) + "\n")
-            else:
-                log_message(f"License file not found: {license_file}", log_file, error_code="MISSING_LICENSE")
-                file.write("License information is unavailable.\n")
+            # Hardcoded License Page
+            file.write("\\clearpage\n")
+            file.write("\\chapter*{Copyright and License}\n")
+            file.write(escape_latex_special_characters(hardcoded_license) + "\n")
 
             # Table of Contents
-            file.write(r"\tableofcontents" + "\n")
-            file.write(r"\clearpage" + "\n")
+            file.write("\\tableofcontents\n")
+            file.write("\\clearpage\n")
 
-            # Introduction Section
-            intro_file = os.path.join(intro_dir, "intro.txt")
-            if os.path.exists(intro_file):
-                with open(intro_file, "r") as intro_f:
-                    intro_content = intro_f.read()
-                file.write(r"\chapter*{Introduction}" + "\n")
-                file.write(escape_latex_special_characters(intro_content) + "\n")
-            else:
-                log_message(f"Introduction file not found: {intro_file}", log_file, error_code="MISSING_INTRO")
-                file.write(r"\chapter*{Introduction}" + "\n")
-                file.write("Introduction content is unavailable.\n")
+            # Hardcoded Introduction Section
+            file.write("\\chapter*{Introduction}\n")
+            file.write(escape_latex_special_characters(hardcoded_introduction) + "\n")
+            file.write("\\clearpage\n")
 
             # Main Content
-            names_with_pages = defaultdict(set)
             for teacher, locations in lineage.items():
-                formatted_teacher = escape_latex_special_characters(format_teacher_name(teacher, "title_first_last"))
-                label_teacher = formatted_teacher.replace(' ', '_')
-                file.write(f"\\chapter{{{formatted_teacher}}}\n")
-                file.write(f"\\label{{{label_teacher}}}\n")
-                names_with_pages[formatted_teacher].add(label_teacher)
+                teacher_str = escape_latex_special_characters(str(teacher))
+                teacher_label = teacher_str.replace(" ", "_")
+                file.write(f"\\chapter{{{teacher_str}}}\n")
+                file.write(f"\\label{{{teacher_label}}}\n")
+                file.write(f"\\index{{{teacher_str}}}\n")  # Add teacher to index
 
-                # Write Bio Paragraph
-                bio = bios.get(teacher, {})
-                if bio:
-                    bio_paragraph = generate_bio_paragraph(formatted_teacher, bio)
-                    file.write(escape_latex_special_characters(bio_paragraph) + "\n\n")
+                # Special handling for the first chapter
+                if teacher == "Grand Master Chong Woong Kim":
+                    file.write(escape_latex_special_characters(hardcoded_bio) + "\n\n")
                 else:
-                    log_message(f"Bio not found for teacher: {teacher}", log_file, error_code="MISSING_BIO")
-                    file.write("Bio information is unavailable.\n\n")
+                    # Format and write bio
+                    bio_data = bios.get(teacher, {})
+                    formatted_bio = escape_latex_special_characters(bio_data)
+                    file.write(f"{formatted_bio}\n\n")
 
-                # Write Students
                 for address, students in locations.items():
-                    file.write(f"\\section*{{{escape_latex_special_characters(address)}}}\n")
-                    file.write(r"\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}" + "\n")
-                    file.write(r"\hline" + "\n")
-                    file.write(r"\textbf{No.} & \textbf{Student Name} & \textbf{Date} & \textbf{Ranking} & \textbf{Number} \\ \hline" + "\n")
+                    address_str = escape_latex_special_characters(str(address))
+                    file.write(f"\\section*{{{address_str}}}\n")
+
+                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
+                    file.write("\\hline\n")
+                    file.write("No. & Student Name & Date & Ranking & Number \\\\ \\hline\n")
 
                     for idx, (student, date, ranking, number) in enumerate(students, start=1):
-                        formatted_student = escape_latex_special_characters(format_student_name(student, "last_first"))
-                        label_student = f"{label_teacher}_{formatted_student.replace(' ', '_')}"
-                        names_with_pages[formatted_student].add(label_student)
-                        file.write(f"{idx} & {formatted_student} & {escape_latex_special_characters(date)} & {escape_latex_special_characters(ranking)} & {escape_latex_special_characters(number)} \\\\ \\hline\n")
+                        student_str = escape_latex_special_characters(str(student))
+                        file.write(f"{idx} & {student_str} & "
+                                   f"{escape_latex_special_characters(str(date))} & "
+                                   f"{escape_latex_special_characters(str(ranking))} & "
+                                   f"{escape_latex_special_characters(str(number))} \\\\ \\hline\n")
 
-                    file.write(r"\end{longtable}" + "\n")
+                        file.write(f"\\index{{{student_str}}}\n")  # Add student to index
 
-            # Generate Index
-            file.write(r"\chapter{Index}" + "\n")
-            file.write(r"\begin{longtable}{|p{6cm}|p{8cm}|}" + "\n")
-            file.write(r"\hline" + "\n")
-            file.write(r"\textbf{Name} & \textbf{Page Numbers} \\ \hline" + "\n")
-            for name, labels in sorted(names_with_pages.items()):
-                pages_str = ", ".join([f"\\pageref{{{label}}}" for label in sorted(labels)])
-                file.write(f"{escape_latex_special_characters(name)} & {pages_str} \\\\ \\hline\n")
-            file.write(r"\end{longtable}" + "\n")
+                    file.write("\\end{longtable}\n")
 
-            # End Document
-            file.write(r"\end{document}" + "\n")
+            # Print the Index
+            file.write("\\clearpage\n")
+            file.write("\\printindex\n")  # Print the index
+            file.write("\\end{document}\n")
+            print("LaTeX document generation completed successfully.")
     except Exception as e:
         log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
+
+
 
 
 
@@ -429,15 +496,23 @@ def main():
     log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
     license_file = config.get("license_file", "license.txt")
+    special_bio_dir = config.get("special_bio_dir", "Special_Bios")  # Path to the special bio directory
 
     ensure_directory_exists(output_dir)
 
     lineage = defaultdict(dict)
     bios = load_bios(bio_dir, log_file)
-    parse_raw_data(raw_data_dir, lineage, log_file)
-    generate_latex(lineage, bios, tex_file, log_file, intro_dir, license_file)
+    
+    # Process all files in the RAW Data directory
+    parse_raw_data_with_defaults(raw_data_dir, lineage, log_file)
+    
+    # Generate the LaTeX document
+    generate_latex(lineage, bios, tex_file, log_file)
+
+
 
     log_message(f"LaTeX document generated at: {tex_file}", log_file, error_code="SUCCESS")
 
 if __name__ == "__main__":
     main()
+
