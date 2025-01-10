@@ -12,3 +12,6 @@ A forum is avalable to ask questions and discuss the ongoing development of the 
 
 ## Code Documentation
 The project is written in Python. Code documentation is located here --> https://github.com/JLPennington/GM_Kim_lineage_Project/blob/main/README.md  
+
+## Data Tools
+Documentation of data tool used for preprocessing of data is available here —> https://github.com/JLPennington/GM_Kim_lineage_Project/blob/main/CLI_Tools/README.md
