@@ -1,5 +1,5 @@
 
-# Lineage Documentation Tool
+# Lineage of Grand Master Chong Woong Kim
 
 ## Purpose
 This project aims to document the lineage of Grand Master Chong Woong Kim and his black belts, their locations and students over time. The resulting document is a well-structured LaTeX file that includes the complete lineage of Grand Master Kim.
