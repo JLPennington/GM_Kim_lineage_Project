@@ -1,7 +1,9 @@
 import os
 import json
+import subprocess
 from collections import defaultdict
 from datetime import datetime
+from collections import defaultdict
 
 def reformat_name(name: str) -> str:
     """
@@ -319,150 +321,152 @@ def parse_line_with_defaults(line, log_file):
 
 
 
-def generate_latex(lineage, bios, tex_file, log_file):
-    """
-    Generates a LaTeX document with an index for teachers and students.
-    Ensures introduction, license, and first chapter bio are hardcoded.
+import subprocess
+import os
+from collections import defaultdict
 
-    Args:
-        lineage (dict): Lineage data.
-        bios (dict): Teacher bios.
-        tex_file (str): Path to the output LaTeX file.
-        log_file (str): Path to the log file.
-    """
-    def escape_latex_special_characters(text):
-        """Escapes special LaTeX characters in text."""
-        if not isinstance(text, str):
-            log_message(f"Non-string data encountered: {text}", log_file, error_code="DATA_ERROR")
-            text = str(text)  # Convert non-string to string
-        special_chars = {
-            '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#',
-            '_': r'\_', '{': r'\{', '}': r'\}', '~': r'\textasciitilde{}',
-            '^': r'\textasciicircum{}', '\\': r'\textbackslash{}'
-        }
-        for char, escape in special_chars.items():
-            text = text.replace(char, escape)
-        return text
+def escape_latex_special_characters(text):
+    """Escapes special LaTeX characters in text."""
+    if not isinstance(text, str):
+        text = str(text)
+    special_chars = {
+        '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#',
+        '_': r'\_', '{': r'\{', '}': r'\}', '~': r'\textasciitilde{}',
+        '^': r'\textasciicircum{}', '\\': r'\textbackslash{}'
+    }
+    for char, escape in special_chars.items():
+        text = text.replace(char, escape)
+    return text
 
-    def format_student_name(name):
-        """Formats student name as Last name, First name Middle name."""
-        parts = name.split()
-        if len(parts) == 1:
-            return parts[0]  # Single name, no formatting needed
-        elif len(parts) == 2:
-            return f"{parts[1]}, {parts[0]}"
-        else:
-            return f"{parts[-1]}, {' '.join(parts[:-1])}"
+def format_student_name(name):
+    """Formats student name as Last name, First name Middle name."""
+    parts = name.split()
+    if len(parts) == 1:
+        return parts[0]
+    elif len(parts) == 2:
+        return f"{parts[1]}, {parts[0]}"
+    else:
+        return f"{parts[-1]}, {' '.join(parts[:-1])}"
 
-    try:
-        if not lineage:
-            log_message("Lineage data is empty. Skipping LaTeX generation.", log_file, error_code="EMPTY_DATA")
-            return
+def generate_latex_preamble(file, title, author):
+    """Writes the LaTeX document preamble."""
+    file.write("\\documentclass[oneside]{book}\n")
+    file.write("\\usepackage[utf8]{inputenc}\n")
+    file.write("\\usepackage{longtable}\n")
+    file.write("\\usepackage{hyperref}\n")
+    file.write("\\usepackage{makeidx}\n")
+    file.write("\\makeindex\n")
+    file.write(f"\\title{{{title}}}\n")
+    file.write(f"\\author{{{author}}}\n")
+    file.write("\\date{\\today}\n")
+    file.write("\\begin{document}\n")
+    file.write("\\maketitle\n")
 
-        # Hardcoded License
-        hardcoded_license = (
-            "This document is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 "
-            "International License. You are free to share and adapt the material under the following terms: "
-            "give appropriate credit, do not use it for commercial purposes, and distribute your contributions "
-            "under the same license."
-        )
+def generate_license_section(file):
+    """Writes the license section."""
+    license_text = (
+        "This document is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 "
+        "International License. You are free to share and adapt the material under the following terms: "
+        "give appropriate credit, do not use it for commercial purposes, and distribute your contributions "
+        "under the same license."
+    )
+    file.write("\\clearpage\n")
+    file.write("\\chapter*{Copyright and License}\n")
+    file.write(escape_latex_special_characters(license_text) + "\n")
 
-        # Hardcoded Bio for Grand Master Chong Woong Kim
+def generate_introduction_section(file):
+    """Writes the introduction section."""
+    introduction_text = (
+        "Welcome to the lineage document of Grand Master Chong Woong Kim. This work seeks to preserve "
+        "and share the profound legacy of a martial artist who has touched countless lives. Through these "
+        "pages, we explore the connections, stories, and achievements of students and teachers who form an "
+        "unbroken chain of knowledge and tradition."
+    )
+    file.write("\\clearpage\n")
+    file.write("\\chapter*{Introduction}\n")
+    file.write(escape_latex_special_characters(introduction_text) + "\n")
+
+def generate_teacher_section(file, teacher, bio, lineage, is_first_chapter=False):
+    """Generates a LaTeX section for a teacher, including their bio and lineage."""
+    teacher_str = escape_latex_special_characters(teacher)
+    file.write(f"\\chapter{{{teacher_str}}}\n")
+    file.write(f"\\index{{{teacher_str}}}\n")
+
+    if is_first_chapter:
         hardcoded_bio = (
             "Grand Master Chong Woong Kim is a distinguished martial artist whose legacy is rooted in his "
             "dedication to Taekwondo and his profound impact on students worldwide. Born in Seoul, South Korea, "
             "Grand Master Kim has spent decades sharing his expertise and fostering respect, discipline, and "
             "excellence in martial arts."
         )
-
-        # Hardcoded Introduction
-        hardcoded_introduction = (
-            "Welcome to the lineage document of Grand Master Chong Woong Kim. This work seeks to preserve "
-            "and share the profound legacy of a martial artist who has touched countless lives. Through these "
-            "pages, we explore the connections, stories, and achievements of students and teachers who form an "
-            "unbroken chain of knowledge and tradition."
+        file.write(escape_latex_special_characters(hardcoded_bio) + "\n\n")
+    else:
+        nationality = bio.get('nationality', 'Unknown')
+        article = "an" if nationality.lower()[0] in "aeiou" else "a"
+        formatted_bio = (
+            f"{teacher}, {article} {nationality} martial artist, from {bio.get('hometown', 'Unknown')}. "
+            f"A student of {bio.get('student_of', 'Unknown')}."
         )
+        file.write(escape_latex_special_characters(formatted_bio) + "\n\n")
 
+def generate_student_table(file, address, students):
+    """Generates a LaTeX table for students at a specific address."""
+    address_str = escape_latex_special_characters(address)
+    file.write(f"\\section*{{{address_str}}}\n")
+    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
+    file.write("\\hline\n")
+    file.write("No. & Student Name & Date & Ranking & Number \\\\ \\hline\n")
+
+    sorted_students = sorted(students, key=lambda s: format_student_name(s[0]))
+    for idx, (student, date, ranking, number) in enumerate(sorted_students, start=1):
+        formatted_name = format_student_name(student)
+        file.write(f"{idx} & {escape_latex_special_characters(formatted_name)} & "
+                   f"{escape_latex_special_characters(date)} & "
+                   f"{escape_latex_special_characters(ranking)} & "
+                   f"{escape_latex_special_characters(number)} \\\\ \\hline\n")
+        file.write(f"\\index{{{escape_latex_special_characters(formatted_name)}}}\n")  # Add student to index
+    file.write("\\end{longtable}\n")
+
+def generate_latex(lineage, bios, tex_file, log_file):
+    """Generates a LaTeX document with teacher and student information."""
+    try:
         with open(tex_file, "w") as file:
-            # LaTeX document preamble
-            file.write("\\documentclass[oneside]{book}\n")
-            file.write("\\usepackage[utf8]{inputenc}\n")
-            file.write("\\usepackage{longtable}\n")
-            file.write("\\usepackage{hyperref}\n")
-            file.write("\\usepackage{makeidx}\n")  # Enable index generation
-            file.write("\\makeindex\n")  # Prepare for indexing
-            file.write("\\title{Lineage of Grand Master Chong Woong Kim}\n")
-            file.write("\\author{Compiled Lineage Working Group}\n")
-            file.write("\\date{\\today}\n")
-            file.write("\\begin{document}\n")
-            file.write("\\maketitle\n")
+            generate_latex_preamble(file, "Lineage of Grand Master Chong Woong Kim", "Compiled Lineage Working Group")
+            generate_license_section(file)
+            generate_introduction_section(file)
 
-            # Hardcoded License Page
-            file.write("\\clearpage\n")
-            file.write("\\chapter*{Copyright and License}\n")
-            file.write(escape_latex_special_characters(hardcoded_license) + "\n")
-
-            # Table of Contents
-            file.write("\\tableofcontents\n")
-            file.write("\\clearpage\n")
-
-            # Hardcoded Introduction Section
-            file.write("\\chapter*{Introduction}\n")
-            file.write(escape_latex_special_characters(hardcoded_introduction) + "\n")
-            file.write("\\clearpage\n")
-
-            # Main Content
-            for teacher, locations in lineage.items():
-                teacher_str = escape_latex_special_characters(str(teacher))
-                teacher_label = teacher_str.replace(" ", "_")
-                file.write(f"\\chapter{{{teacher_str}}}\n")
-                file.write(f"\\label{{{teacher_label}}}\n")
-                file.write(f"\\index{{{teacher_str}}}\n")  # Add teacher to index
-
-                # Special handling for the first chapter
-                if teacher == "Grand Master Chong Woong Kim":
-                    file.write(escape_latex_special_characters(hardcoded_bio) + "\n\n")
-                else:
-                    # Format and write bio in paragraph form
-                    bio_data = bios.get(teacher, {})
-                    formatted_bio = (
-                        f"{teacher_str} is a martial artist from {bio_data.get('hometown', 'Unknown')}. "
-                        f"They are a student of {bio_data.get('student_of', 'Unknown')} and "
-                        f"are of {bio_data.get('nationality', 'Unknown')} nationality."
-                    )
-                    escaped_bio = escape_latex_special_characters(formatted_bio)
-                    file.write(f"{escaped_bio}\n\n")
+            for idx, (teacher, locations) in enumerate(lineage.items()):
+                bio_data = bios.get(teacher, {})
+                generate_teacher_section(file, teacher, bio_data, lineage, is_first_chapter=(idx == 0))
 
                 for address, students in locations.items():
-                    address_str = escape_latex_special_characters(str(address))
-                    file.write(f"\\section*{{{address_str}}}\n")
+                    generate_student_table(file, address, students)
 
-                    file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
-                    file.write("\\hline\n")
-                    file.write("No. & Student Name & Date & Ranking & Number \\\\ \\hline\n")
-
-                    # Sort students alphabetically by last name
-                    sorted_students = sorted(students, key=lambda s: format_student_name(s[0]))
-
-                    for idx, (student, date, ranking, number) in enumerate(sorted_students, start=1):
-                        formatted_name = format_student_name(student)
-                        student_str = escape_latex_special_characters(formatted_name)
-                        file.write(f"{idx} & {student_str} & "
-                                   f"{escape_latex_special_characters(str(date))} & "
-                                   f"{escape_latex_special_characters(str(ranking))} & "
-                                   f"{escape_latex_special_characters(str(number))} \\\\ \\hline\n")
-
-                        file.write(f"\\index{{{student_str}}}\n")  # Add student to index
-
-                    file.write("\\end{longtable}\n")
-
-            # Print the Index
             file.write("\\clearpage\n")
-            file.write("\\printindex\n")  # Print the index
+            file.write("\\printindex\n")
             file.write("\\end{document}\n")
-            print("LaTeX document generation completed successfully.")
+            print("LaTeX document generated successfully.")
     except Exception as e:
-        log_message(f"Error writing LaTeX file: {e}", log_file, error_code="LATEX_ERROR")
+        print(f"Error generating LaTeX document: {e}")
+
+def compile_latex(tex_file, output_dir):
+    """Compiles a LaTeX document and generates the index."""
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        compile_command = ["pdflatex", "-output-directory", output_dir, tex_file]
+        makeindex_command = ["makeindex", os.path.join(output_dir, os.path.basename(tex_file).replace(".tex", ".idx"))]
+
+        for _ in range(2):
+            subprocess.run(compile_command, check=True)
+            subprocess.run(makeindex_command, check=True)
+            subprocess.run(compile_command, check=True)
+
+        print("LaTeX document compiled successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during LaTeX compilation: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
 
 
 
