@@ -344,6 +344,16 @@ def generate_latex(lineage, bios, tex_file, log_file):
             text = text.replace(char, escape)
         return text
 
+    def format_student_name(name):
+        """Formats student name as Last name, First name Middle name."""
+        parts = name.split()
+        if len(parts) == 1:
+            return parts[0]  # Single name, no formatting needed
+        elif len(parts) == 2:
+            return f"{parts[1]}, {parts[0]}"
+        else:
+            return f"{parts[-1]}, {' '.join(parts[:-1])}"
+
     try:
         if not lineage:
             log_message("Lineage data is empty. Skipping LaTeX generation.", log_file, error_code="EMPTY_DATA")
@@ -431,8 +441,12 @@ def generate_latex(lineage, bios, tex_file, log_file):
                     file.write("\\hline\n")
                     file.write("No. & Student Name & Date & Ranking & Number \\\\ \\hline\n")
 
-                    for idx, (student, date, ranking, number) in enumerate(students, start=1):
-                        student_str = escape_latex_special_characters(str(student))
+                    # Sort students alphabetically by last name
+                    sorted_students = sorted(students, key=lambda s: format_student_name(s[0]))
+
+                    for idx, (student, date, ranking, number) in enumerate(sorted_students, start=1):
+                        formatted_name = format_student_name(student)
+                        student_str = escape_latex_special_characters(formatted_name)
                         file.write(f"{idx} & {student_str} & "
                                    f"{escape_latex_special_characters(str(date))} & "
                                    f"{escape_latex_special_characters(str(ranking))} & "
@@ -475,17 +489,49 @@ def load_config(config_file: str) -> dict:
         log_message(f"Error decoding JSON in config file: {config_file}", error_code="JSON_ERROR")
         return {}
 
+import subprocess
+import os
+
+def compile_latex(tex_file, output_dir):
+    """
+    Compiles a LaTeX document and generates the index.
+
+    Args:
+        tex_file (str): Path to the LaTeX file to compile.
+        output_dir (str): Directory where the compiled PDF will be saved.
+
+    Returns:
+        None
+    """
+    try:
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Commands to compile the LaTeX document
+        compile_command = ["pdflatex", "-output-directory", output_dir, tex_file]
+        makeindex_command = ["makeindex", os.path.join(output_dir, os.path.basename(tex_file).replace(".tex", ".idx"))]
+
+        # Compile LaTeX and generate index twice to ensure proper processing
+        for _ in range(2):
+            subprocess.run(compile_command, check=True)
+            subprocess.run(makeindex_command, check=True)
+            subprocess.run(compile_command, check=True)
+
+        print("LaTeX document compiled successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during LaTeX compilation: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+
 def main():
     config = load_config("config.json")
 
     raw_data_dir = config.get("raw_data_dir", "RAW Data")
     bio_dir = config.get("bio_dir", "Bios")
-    intro_dir = config.get("intro_dir", "Introduction")
     output_dir = config.get("output_dir", os.getcwd())
     log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
-    license_file = config.get("license_file", "license.txt")
-    special_bio_dir = config.get("special_bio_dir", "Special_Bios")  # Path to the special bio directory
 
     ensure_directory_exists(output_dir)
 
@@ -498,10 +544,12 @@ def main():
     # Generate the LaTeX document
     generate_latex(lineage, bios, tex_file, log_file)
 
+    # Compile the LaTeX document
+    compile_latex(tex_file, output_dir)
 
-
-    log_message(f"LaTeX document generated at: {tex_file}", log_file, error_code="SUCCESS")
+    log_message(f"LaTeX document compiled and saved in: {output_dir}", log_file, error_code="SUCCESS")
 
 if __name__ == "__main__":
     main()
+
 
