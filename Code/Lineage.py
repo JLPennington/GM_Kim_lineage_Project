@@ -343,12 +343,23 @@ def generate_latex_preamble(file, title, author):
     file.write("\\usepackage{longtable}\n")
     file.write("\\usepackage{hyperref}\n")
     file.write("\\usepackage{makeidx}\n")
+    file.write("\\usepackage{graphicx}\n")  # Enables embedding images
     file.write("\\makeindex\n")
-    file.write(f"\\title{{{title}}}\n")
-    file.write(f"\\author{{{author}}}\n")
-    file.write("\\date{\\today}\n")
     file.write("\\begin{document}\n")
-    file.write("\\maketitle\n")
+    file.write("\\begin{titlepage}\n")
+    file.write("\\begin{center}\n")
+    file.write("\\vspace*{1cm}\n")  # Adds vertical space at the top
+    file.write("\\Huge \\textbf{Lineage of Grand Master Chong Woong Kim}\\\\[1.5cm]\n")  # Title text, larger size
+    file.write(f"\\Large {author}\\\\[1cm]\n")  # Author text
+    file.write("\\normalsize \\today\\\\[2cm]\n")  # Date with spacing
+    file.write("\\includegraphics[width=0.4\\textwidth]{Output/logo/logo.jpg}\n")  # Adjust logo size
+    file.write("\\end{center}\n")
+    file.write("\\end{titlepage}\n")
+    file.write("\\end{document}\n")
+
+
+
+
 
 def generate_license_section(file):
     """Writes the license section."""
