@@ -357,10 +357,6 @@ def generate_latex_preamble(file, title, author):
     file.write("\\end{titlepage}\n")
     file.write("\\end{document}\n")
 
-
-
-
-
 def generate_license_section(file):
     """Writes the license section."""
     license_text = (
