@@ -137,7 +137,6 @@ def generate_index(names_with_pages: dict, file) -> None:
 
     file.write("\\end{longtable}\\n")
 
-
 def parse_date(date_str: str) -> str:
     """
     Parses a date string into a standard format (YYYY-MM-DD).
@@ -239,10 +238,6 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
                 log_message(f"Error reading bio file {bio_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
     return bios
 
-
-import os
-import json
-
 def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
     """
     Parses raw data files from a directory and populates a lineage dictionary.
@@ -298,7 +293,6 @@ def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
     except Exception as e:
         log_message(f"Error processing directory {raw_data_dir}: {e}", log_file, error_code="UNKNOWN_ERROR")
 
-
 def parse_line_with_defaults(line, log_file):
     """Parses a single line from the standardized student list, handling missing fields."""
     try:
@@ -318,12 +312,6 @@ def parse_line_with_defaults(line, log_file):
     except Exception as e:
         log_message(f"Error parsing line: {line.strip()} - {e}", log_file, error_code="PARSE_ERROR")
         return None
-
-
-
-import subprocess
-import os
-from collections import defaultdict
 
 def escape_latex_special_characters(text):
     """Escapes special LaTeX characters in text."""
@@ -468,11 +456,6 @@ def compile_latex(tex_file, output_dir):
         print(f"Unexpected error: {e}")
 
 
-
-
-
-
-
 def load_config(config_file: str) -> dict:
     """
     Loads configuration from a JSON file.
@@ -492,9 +475,6 @@ def load_config(config_file: str) -> dict:
     except json.JSONDecodeError:
         log_message(f"Error decoding JSON in config file: {config_file}", error_code="JSON_ERROR")
         return {}
-
-import subprocess
-import os
 
 def compile_latex(tex_file, output_dir):
     """
