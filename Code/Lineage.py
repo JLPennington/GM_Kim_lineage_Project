@@ -3,18 +3,21 @@ import json
 import subprocess
 from collections import defaultdict
 from datetime import datetime
-from collections import defaultdict
+import logging
+from typing import Optional, Union
 
 def reformat_name(name: str) -> str:
     """
-    Formats a name into 'Title First Middle Last' format.
-    Handles titles and ensures proper name structure.
+    Formats a name into 'Title First Middle Last' format, handling titles appropriately.
 
     Args:
         name (str): The name string to format.
 
     Returns:
         str: The formatted name or the original name if formatting is not applicable.
+
+    Raises:
+        ValueError: If the input is not a string.
     """
     if not isinstance(name, str):
         raise ValueError("Input must be a string.")
@@ -35,23 +38,20 @@ def reformat_name(name: str) -> str:
         rest = name_parts
 
     if rest:
-        # Preserve the rest of the name in correct order
         return f"{title} {' '.join(rest)}".strip()
     else:
-        # Only a title with no additional name parts
         return title.strip()
 
-
-def format_student_name(name: str, format_type: str = "last_first") -> str:
+def format_name(name: str, format_type: str = "last_first") -> str:
     """
-    Formats a student's name into the desired format.
+    Formats a name into the specified format.
 
     Args:
-        name (str): The student's name.
+        name (str): The name to format.
         format_type (str): Either "last_first" or "first_last".
 
     Returns:
-        str: Formatted student name.
+        str: Formatted name.
     """
     name = name.strip().rstrip(",")
     if "," in name:
@@ -88,13 +88,13 @@ def format_teacher_name(name: str, format_type: str = "title_first_last") -> str
         if format_type == "title_first_last":
             return f"{title} {rest}"
         elif format_type == "last_first":
-            formatted_name = format_student_name(rest, "last_first")
+            formatted_name = format_name(rest, "last_first")
             return f"{title} {formatted_name}"
         else:
-            formatted_name = format_student_name(rest, "first_last")
+            formatted_name = format_name(rest, "first_last")
             return f"{title} {formatted_name}"
     else:
-        return format_student_name(name, format_type)
+        return format_name(name, format_type)
 
 def generate_bio_paragraph(name: str, bio: dict) -> str:
     """
@@ -110,37 +110,12 @@ def generate_bio_paragraph(name: str, bio: dict) -> str:
     hometown = bio.get("hometown", "an unknown location")
     student_of = bio.get("student_of", "an unknown instructor")
     nationality = bio.get("nationality", "unknown")
-
-    # Determine the correct article ("a" or "an") based on the nationality
     article = "an" if nationality.lower()[0] in "aeiou" else "a"
-
-    return (
-        f"{name}, {article} {nationality} martial artist from {hometown}, is a student of {student_of}."
-    )
-
-def generate_index(names_with_pages: dict, file) -> None:
-    """
-    Generates an index for all names with page numbers.
-
-    Args:
-        names_with_pages (dict): A dictionary mapping names to page numbers.
-        file: The LaTeX file object to write the index into.
-    """
-    file.write("\\chapter{Index}\\n")
-    file.write("\\begin{longtable}{|p{6cm}|p{8cm}|}\\n")
-    file.write("\\hline\\n")
-    file.write("\\textbf{Name} & \\textbf{Page Numbers} \\\\\\ \\hline\\n")
-
-    for name, pages in sorted(names_with_pages.items()):
-        pages_str = ", ".join(map(str, sorted(pages)))
-        file.write(f"{name} & {pages_str} \\\\\\ \\hline\\n")
-
-    file.write("\\end{longtable}\\n")
+    return f"{name}, {article} {nationality} martial artist from {hometown}, is a student of {student_of}."
 
 def parse_date(date_str: str) -> str:
     """
     Parses a date string into a standard format (YYYY-MM-DD).
-    Handles multiple input formats and returns a default message for invalid inputs.
 
     Args:
         date_str (str): The date string to parse.
@@ -149,6 +124,7 @@ def parse_date(date_str: str) -> str:
         str: The parsed date in YYYY-MM-DD format or an error message if invalid.
     """
     if not isinstance(date_str, str):
+        logging.error(f"Invalid date input: {date_str}")
         return "Invalid Date Format"
 
     if not date_str.strip():
@@ -161,19 +137,8 @@ def parse_date(date_str: str) -> str:
         except ValueError:
             continue
 
+    logging.error(f"Could not parse date: {date_str}")
     return "Invalid Date Format"
-
-def log_message(message: str, log_file: str = "error_log.txt", error_code: str = "INFO") -> None:
-    """
-    Logs a message to the console and a log file.
-
-    Args:
-        message (str): The message to log.
-        log_file (str): The path to the log file.
-        error_code (str): Error category or code.
-    """
-    with open(log_file, "a") as log:
-        log.write(f"[{datetime.now()}] [{error_code}] {message}\n")
 
 def validate_directory(path: str) -> bool:
     """
@@ -186,7 +151,7 @@ def validate_directory(path: str) -> bool:
         bool: True if valid, False otherwise.
     """
     if not os.path.exists(path):
-        log_message(f"Directory not found: {path}", error_code="ERROR")
+        logging.error(f"Directory not found: {path}")
         return False
     return True
 
@@ -199,29 +164,27 @@ def ensure_directory_exists(path: str) -> None:
     """
     if not os.path.exists(path):
         os.makedirs(path)
-        log_message(f"Created directory: {path}", error_code="INFO")
+        logging.info(f"Created directory: {path}")
 
-def load_bios(bio_dir: str, log_file: str) -> dict:
+def load_bios(bio_dir: str) -> dict:
     """
     Loads bios from text files in a specified directory.
 
     Args:
         bio_dir (str): Path to the directory containing bio files.
-        log_file (str): Path to the log file.
 
     Returns:
         dict: A dictionary of teacher bios.
     """
     bios = {}
     if not validate_directory(bio_dir):
-        log_message(f"Error: Bios directory not found at {bio_dir}.", log_file, error_code="MISSING_DIR")
+        logging.error(f"Bios directory not found at {bio_dir}.")
         return bios
 
     for filename in os.listdir(bio_dir):
         if filename.endswith(".txt"):
-            # Normalize the teacher's name by replacing underscores with spaces
             teacher_name = os.path.splitext(filename)[0].replace("_", " ")
-            teacher_name = reformat_name(teacher_name)  # Ensure consistent formatting
+            teacher_name = reformat_name(teacher_name)
             bio_path = os.path.join(bio_dir, filename)
             try:
                 with open(bio_path, "r") as bio_file:
@@ -234,36 +197,37 @@ def load_bios(bio_dir: str, log_file: str) -> dict:
                         elif line.startswith("Nationality:"):
                             bio_data["nationality"] = line.replace("Nationality:", "").strip() or "Unknown"
                     bios[teacher_name] = bio_data
+            except FileNotFoundError:
+                logging.error(f"Bio file not found: {bio_path}")
+            except PermissionError:
+                logging.error(f"Permission denied for bio file: {bio_path}")
             except Exception as e:
-                log_message(f"Error reading bio file {bio_path}: {e}", log_file, error_code="UNKNOWN_ERROR")
+                logging.error(f"Error reading bio file {bio_path}: {e}")
     return bios
 
-def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
+def parse_raw_data_with_defaults(raw_data_dir: str, lineage: dict) -> None:
     """
     Parses raw data files from a directory and populates a lineage dictionary.
 
     Args:
         raw_data_dir (str): Path to the directory containing raw data files.
         lineage (dict): Dictionary to store lineage information.
-        log_file (str): Path to the log file.
     """
-    # Ensure the provided path is a directory
     if not os.path.isdir(raw_data_dir):
-        log_message(f"Provided path is not a directory: {raw_data_dir}", log_file, error_code="INVALID_PATH")
+        logging.error(f"Provided path is not a directory: {raw_data_dir}")
         return
 
-    try:
-        for filename in os.listdir(raw_data_dir):
-            # Skip non-text files
-            if not filename.endswith(".txt"):
-                continue
+    for filename in os.listdir(raw_data_dir):
+        if not filename.endswith(".txt"):
+            continue
 
-            file_path = os.path.join(raw_data_dir, filename)
-            print(f"Processing file: {file_path}")  # Debugging: Show which file is being processed
+        file_path = os.path.join(raw_data_dir, filename)
+        logging.info(f"Processing file: {file_path}")
 
+        try:
             with open(file_path, "r") as file:
                 for line in file:
-                    parsed = parse_line_with_defaults(line, log_file)
+                    parsed = parse_line_with_defaults(line)
                     if not parsed:
                         continue
 
@@ -274,31 +238,35 @@ def parse_raw_data_with_defaults(raw_data_dir, lineage, log_file):
                     ranking = parsed["ranking"]
                     number = parsed["number"]
 
-                    # Ensure teacher exists in lineage
                     if teacher not in lineage:
                         lineage[teacher] = {}
-
-                    # Ensure address exists under teacher
                     if address not in lineage[teacher]:
                         lineage[teacher][address] = []
-
-                    # Add student data to the teacher's address entry
                     lineage[teacher][address].append((student, date, ranking, number))
+        except FileNotFoundError:
+            logging.error(f"File not found: {file_path}")
+        except PermissionError:
+            logging.error(f"Permission denied for file: {file_path}")
+        except Exception as e:
+            logging.error(f"Error processing file {file_path}: {e}")
 
-        # Debugging: Print lineage data
-        print("Lineage Data after Parsing:")
-        print(json.dumps(lineage, indent=2))
-        if not lineage:
-            log_message("Lineage data is empty. Verify input data and parsing logic.", log_file, error_code="EMPTY_DATA")
-    except Exception as e:
-        log_message(f"Error processing directory {raw_data_dir}: {e}", log_file, error_code="UNKNOWN_ERROR")
+    if not lineage:
+        logging.warning("Lineage data is empty. Verify input data and parsing logic.")
 
-def parse_line_with_defaults(line, log_file):
-    """Parses a single line from the standardized student list, handling missing fields."""
+def parse_line_with_defaults(line: str) -> Optional[dict]:
+    """
+    Parses a single line from the standardized student list, handling missing fields.
+
+    Args:
+        line (str): The line to parse.
+
+    Returns:
+        Optional[dict]: Parsed data or None if parsing fails.
+    """
     try:
         parts = [x.strip() for x in line.split("|")]
         if len(parts) != 6:
-            log_message(f"Malformed line: {line.strip()}", log_file, error_code="DATA_ERROR")
+            logging.error(f"Malformed line: {line.strip()}")
             return None
 
         return {
@@ -310,11 +278,19 @@ def parse_line_with_defaults(line, log_file):
             "number": parts[5] or "N/A",
         }
     except Exception as e:
-        log_message(f"Error parsing line: {line.strip()} - {e}", log_file, error_code="PARSE_ERROR")
+        logging.error(f"Error parsing line: {line.strip()} - {e}")
         return None
 
-def escape_latex_special_characters(text):
-    """Escapes special LaTeX characters in text."""
+def escape_latex_special_characters(text: str) -> str:
+    """
+    Escapes special LaTeX characters in text.
+
+    Args:
+        text (str): The text to escape.
+
+    Returns:
+        str: Text with LaTeX special characters escaped.
+    """
     if not isinstance(text, str):
         text = str(text)
     special_chars = {
@@ -326,8 +302,16 @@ def escape_latex_special_characters(text):
         text = text.replace(char, escape)
     return text
 
-def format_student_name(name):
-    """Formats student name as Last name, First name Middle name."""
+def format_name_for_latex_table(name: str) -> str:
+    """
+    Formats name as 'Last, First Middle' for LaTeX tables.
+
+    Args:
+        name (str): The name to format.
+
+    Returns:
+        str: Formatted name.
+    """
     parts = name.split()
     if len(parts) == 1:
         return parts[0]
@@ -336,28 +320,34 @@ def format_student_name(name):
     else:
         return f"{parts[-1]}, {' '.join(parts[:-1])}"
 
-def generate_latex_preamble(file, title, author):
-    """Writes the LaTeX document preamble."""
+def generate_latex_preamble(file, title: str, author: str) -> None:
+    """
+    Writes the LaTeX document preamble.
+
+    Args:
+        file: The file object to write to.
+        title (str): Document title.
+        author (str): Document author.
+    """
     file.write("\\documentclass[oneside]{book}\n")
     file.write("\\usepackage[utf8]{inputenc}\n")
     file.write("\\usepackage{longtable}\n")
     file.write("\\usepackage{hyperref}\n")
     file.write("\\usepackage{makeidx}\n")
-    file.write("\\usepackage{graphicx}\n")  # Enables embedding images
+    file.write("\\usepackage{graphicx}\n")
     file.write("\\makeindex\n")
     file.write("\\begin{document}\n")
     file.write("\\begin{titlepage}\n")
     file.write("\\begin{center}\n")
-    file.write("\\vspace*{1cm}\n")  # Adds vertical space at the top
-    file.write("\\Huge \\textbf{Lineage of Grand Master Chong Woong Kim}\\\\[1.5cm]\n")  # Title text, larger size
-    file.write(f"\\Large {author}\\\\[1cm]\n")  # Author text
-    file.write("\\normalsize \\today\\\\[2cm]\n")  # Date with spacing
-    file.write("\\includegraphics[width=0.4\\textwidth]{Output/logo/logo.jpg}\n")  # Adjust logo size
+    file.write("\\vspace*{1cm}\n")
+    file.write("\\Huge \\textbf{Lineage of Grand Master Chong Woong Kim}\\\\[1.5cm]\n")
+    file.write(f"\\Large {author}\\\\[1cm]\n")
+    file.write("\\normalsize \\today\\\\[2cm]\n")
+    file.write("\\includegraphics[width=0.4\\textwidth]{Output/logo/logo.jpg}\n")
     file.write("\\end{center}\n")
     file.write("\\end{titlepage}\n")
-    file.write("\\end{document}\n")
 
-def generate_license_section(file):
+def generate_license_section(file) -> None:
     """Writes the license section."""
     license_text = (
         "This document is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 "
@@ -369,7 +359,7 @@ def generate_license_section(file):
     file.write("\\chapter*{Copyright and License}\n")
     file.write(escape_latex_special_characters(license_text) + "\n")
 
-def generate_introduction_section(file):
+def generate_introduction_section(file) -> None:
     """Writes the introduction section."""
     introduction_text = (
         "Welcome to the lineage document of Grand Master Chong Woong Kim. This work seeks to preserve "
@@ -381,8 +371,17 @@ def generate_introduction_section(file):
     file.write("\\chapter*{Introduction}\n")
     file.write(escape_latex_special_characters(introduction_text) + "\n")
 
-def generate_teacher_section(file, teacher, bio, lineage, is_first_chapter=False):
-    """Generates a LaTeX section for a teacher, including their bio and lineage."""
+def generate_teacher_section(file, teacher: str, bio: dict, lineage: dict, is_first_chapter: bool = False) -> None:
+    """
+    Generates a LaTeX section for a teacher, including their bio and lineage.
+
+    Args:
+        file: The file object to write to.
+        teacher (str): Teacher's name.
+        bio (dict): Bio details.
+        lineage (dict): Lineage data.
+        is_first_chapter (bool): Whether this is the first chapter.
+    """
     teacher_str = escape_latex_special_characters(teacher)
     file.write(f"\\chapter{{{teacher_str}}}\n")
     file.write(f"\\index{{{teacher_str}}}\n")
@@ -404,64 +403,108 @@ def generate_teacher_section(file, teacher, bio, lineage, is_first_chapter=False
         )
         file.write(escape_latex_special_characters(formatted_bio) + "\n\n")
 
-def generate_student_table(file, address, students):
-    """Generates a LaTeX table for students at a specific address."""
+def generate_student_table(file, address: str, students: list) -> None:
+    """
+    Generates a LaTeX table for students at a specific address, avoiding extra \hline at the end.
+
+    Args:
+        file: The file object to write to.
+        address (str): The address.
+        students (list): List of student tuples (student, date, ranking, number).
+    """
     address_str = escape_latex_special_characters(address)
     file.write(f"\\section*{{{address_str}}}\n")
     file.write("\\begin{longtable}{|c|p{4cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}\n")
     file.write("\\hline\n")
     file.write("No. & Student Name & Date & Ranking & Number \\\\ \\hline\n")
 
-    sorted_students = sorted(students, key=lambda s: format_student_name(s[0]))
+    sorted_students = sorted(students, key=lambda s: format_name_for_latex_table(s[0]))
     for idx, (student, date, ranking, number) in enumerate(sorted_students, start=1):
-        formatted_name = format_student_name(student)
+        formatted_name = format_name_for_latex_table(student)
         file.write(f"{idx} & {escape_latex_special_characters(formatted_name)} & "
                    f"{escape_latex_special_characters(date)} & "
                    f"{escape_latex_special_characters(ranking)} & "
-                   f"{escape_latex_special_characters(number)} \\\\ \\hline\n")
-        file.write(f"\\index{{{escape_latex_special_characters(formatted_name)}}}\n")  # Add student to index
+                   f"{escape_latex_special_characters(number)} \\\\\n")
+        file.write(f"\\index{{{escape_latex_special_characters(formatted_name)}}}\n")
+        if idx < len(sorted_students):
+            file.write("\\hline\n")
     file.write("\\end{longtable}\n")
 
-def generate_latex(lineage, bios, tex_file, log_file):
-    """Generates a LaTeX document with teacher and student information."""
+def generate_latex(lineage: dict, bios: dict, tex_file: str) -> None:
+    """
+    Generates a LaTeX document with teacher and student information, including a table of contents.
+
+    Args:
+        lineage (dict): Lineage data.
+        bios (dict): Bio data.
+        tex_file (str): Path to the output TeX file.
+    """
     try:
         with open(tex_file, "w") as file:
+            # Write preamble, license, and introduction
             generate_latex_preamble(file, "Lineage of Grand Master Chong Woong Kim", "Compiled Lineage Working Group")
             generate_license_section(file)
             generate_introduction_section(file)
+            
+            # Add table of contents
+            file.write("\\clearpage\n")
+            file.write("\\tableofcontents\n")
+            file.write("\\clearpage\n")
 
-            for idx, (teacher, locations) in enumerate(lineage.items()):
+            # Define the Grand Master's name
+            grand_master_name = "Grand Master Chong Woong Kim"
+            
+            # Generate Chapter 1 for Grand Master Chong Woong Kim
+            if grand_master_name in lineage:
+                generate_teacher_section(file, grand_master_name, bios.get(grand_master_name, {}), lineage, is_first_chapter=True)
+                for address, students in lineage[grand_master_name].items():
+                    generate_student_table(file, address, students)
+                # Remove to prevent reprocessing
+                del lineage[grand_master_name]
+            else:
+                logging.warning(f"'{grand_master_name}' not found in lineage dictionary.")
+
+            # Generate remaining chapters in alphabetical order
+            for teacher in sorted(lineage.keys()):
                 bio_data = bios.get(teacher, {})
-                generate_teacher_section(file, teacher, bio_data, lineage, is_first_chapter=(idx == 0))
-
-                for address, students in locations.items():
+                generate_teacher_section(file, teacher, bio_data, lineage, is_first_chapter=False)
+                for address, students in lineage[teacher].items():
                     generate_student_table(file, address, students)
 
+            # Finalize document
             file.write("\\clearpage\n")
             file.write("\\printindex\n")
             file.write("\\end{document}\n")
-            print("LaTeX document generated successfully.")
+        logging.info("LaTeX document generated successfully.")
+    except IOError as e:
+        logging.error(f"Error writing LaTeX file {tex_file}: {e}")
     except Exception as e:
-        print(f"Error generating LaTeX document: {e}")
+        logging.error(f"Unexpected error generating LaTeX document: {e}")
 
-def compile_latex(tex_file, output_dir):
-    """Compiles a LaTeX document and generates the index."""
+def compile_latex(tex_file: str, output_dir: str) -> None:
+    """
+    Compiles a LaTeX document and generates the index.
+
+    Args:
+        tex_file (str): Path to the LaTeX file.
+        output_dir (str): Directory for the compiled PDF.
+    """
     try:
         os.makedirs(output_dir, exist_ok=True)
         compile_command = ["pdflatex", "-output-directory", output_dir, tex_file]
         makeindex_command = ["makeindex", os.path.join(output_dir, os.path.basename(tex_file).replace(".tex", ".idx"))]
 
-        for _ in range(2):
-            subprocess.run(compile_command, check=True)
-            subprocess.run(makeindex_command, check=True)
-            subprocess.run(compile_command, check=True)
+        subprocess.run(compile_command, check=True)
+        subprocess.run(makeindex_command, check=True)
+        subprocess.run(compile_command, check=True)
 
-        print("LaTeX document compiled successfully.")
+        logging.info("LaTeX document compiled successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error during LaTeX compilation: {e}")
+        logging.error(f"Error during LaTeX compilation: {e}")
+    except FileNotFoundError:
+        logging.error("pdflatex or makeindex not found. Ensure LaTeX is installed.")
     except Exception as e:
-        print(f"Unexpected error: {e}")
-
+        logging.error(f"Unexpected error during compilation: {e}")
 
 def load_config(config_file: str) -> dict:
     """
@@ -477,70 +520,37 @@ def load_config(config_file: str) -> dict:
         with open(config_file, "r") as file:
             return json.load(file)
     except FileNotFoundError:
-        log_message(f"Config file not found: {config_file}", error_code="FILE_NOT_FOUND")
+        logging.error(f"Config file not found: {config_file}")
         return {}
     except json.JSONDecodeError:
-        log_message(f"Error decoding JSON in config file: {config_file}", error_code="JSON_ERROR")
+        logging.error(f"Error decoding JSON in config file: {config_file}")
+        return {}
+    except Exception as e:
+        logging.error(f"Unexpected error loading config: {e}")
         return {}
 
-def compile_latex(tex_file, output_dir):
-    """
-    Compiles a LaTeX document and generates the index.
-
-    Args:
-        tex_file (str): Path to the LaTeX file to compile.
-        output_dir (str): Directory where the compiled PDF will be saved.
-
-    Returns:
-        None
-    """
-    try:
-        # Ensure output directory exists
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Commands to compile the LaTeX document
-        compile_command = ["pdflatex", "-output-directory", output_dir, tex_file]
-        makeindex_command = ["makeindex", os.path.join(output_dir, os.path.basename(tex_file).replace(".tex", ".idx"))]
-
-        # Compile LaTeX and generate index twice to ensure proper processing
-        for _ in range(2):
-            subprocess.run(compile_command, check=True)
-            subprocess.run(makeindex_command, check=True)
-            subprocess.run(compile_command, check=True)
-
-        print("LaTeX document compiled successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error during LaTeX compilation: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
-
 def main():
+    """Main function to orchestrate the lineage document generation."""
     config = load_config("config.json")
-
     raw_data_dir = config.get("raw_data_dir", "RAW Data")
     bio_dir = config.get("bio_dir", "Bios")
     output_dir = config.get("output_dir", os.getcwd())
     log_file = config.get("log_file", "error_log.txt")
     tex_file = os.path.join(output_dir, "lineage_document.tex")
 
-    ensure_directory_exists(output_dir)
+    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
-    lineage = defaultdict(dict)
-    bios = load_bios(bio_dir, log_file)
-    
-    # Process all files in the RAW Data directory
-    parse_raw_data_with_defaults(raw_data_dir, lineage, log_file)
-    
-    # Generate the LaTeX document
-    generate_latex(lineage, bios, tex_file, log_file)
-
-    # Compile the LaTeX document
-    compile_latex(tex_file, output_dir)
-
-    log_message(f"LaTeX document compiled and saved in: {output_dir}", log_file, error_code="SUCCESS")
+    try:
+        ensure_directory_exists(output_dir)
+        lineage = defaultdict(dict)
+        bios = load_bios(bio_dir)
+        parse_raw_data_with_defaults(raw_data_dir, lineage)
+        generate_latex(lineage, bios, tex_file)
+        compile_latex(tex_file, output_dir)
+        logging.info(f"LaTeX document compiled and saved in: {output_dir}")
+    except Exception as e:
+        logging.error(f"Unexpected error in main: {e}")
+        raise
 
 if __name__ == "__main__":
     main()
-
-
